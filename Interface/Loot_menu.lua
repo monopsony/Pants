@@ -17,6 +17,8 @@ do
     frame:SetScript("OnDragStart",frame.StartMoving)
     frame:SetScript("OnDragStop",frame.StopMovingOrSizing)  
     frame:SetMinResize(100,100)
+    frame:SetClipsChildren(true)
+
 
     frame.sizer_frame=ui:Frame(frame,10,10)
     local sizer=frame.sizer_frame
@@ -28,8 +30,27 @@ do
     sizer:SetScript("OnDragStart",function() frame:StartSizing("BOTTOMRIGHT") end)
     sizer:SetScript("OnDragStop",function() frame:StopMovingOrSizing() end)  
     
+    
+    frame.preview_icon=ui:Frame(frame,75,75)
+    local icon=frame.preview_icon
+    icon:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-10)
+    
+    icon.texture=ui:Texture(icon,75,75)
+    local txt=icon.texture
+    txt:SetAllPoints()
+    
 end
 
+function interface:update_main_frame_paramters()
+    local frame=interface.session_main_frame
+    local icon=frame.preview_icon
+    local para=purps.para
+    
+    frame:SetSize(unpack(para.main_frame_initial_size))
+    
+    icon:SetSize(unpack(para.preview_icon_size))
+    icon.texture:SetTexture(para.scroll_item_default_icon)
+end
 
 function interface:update_scroll_parameters()
     local para=purps.para
@@ -46,7 +67,7 @@ function interface:populate_scroll_child()
     if not scrollChild.items then scrollChild.items={} end
     
     for i=1,20 do
-        if not scrollChild.items[i] then scrollChild.items[i]=ui:HighlightButton(scrollChild,50,50,i) end
+        if not scrollChild.items[i] then scrollChild.items[i]=ui:HighlightButton(scrollChild,50,50,nil) end
         local btn=scrollChild.items[i]
         btn:SetSize(unpack(para.scroll_item_size))
         if i==1 then 
@@ -87,7 +108,8 @@ do
     --interface.session_scroll_frame=ui:
     --local args=interface.session_scroll_frame
     local frame=interface.session_main_frame
-    local panel,scrollFrame,scrollChild,scrollBar=ui:ScrollFrame(frame,60,200)
+    local panel,scrollFrame,scrollChild,scrollBar=ui:ScrollFrame(UIParent,60,200)
+    frame:SetParent(panel) --changed my mind
     interface.session_scroll_panel=panel
     --panel.scrollChild / scrollFrame / scrollBar
     
@@ -95,7 +117,9 @@ do
     panel:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT")
     
     
+    
 end
+
 
 
 

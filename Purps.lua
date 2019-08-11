@@ -36,6 +36,8 @@ local defaults={
         scroll_item_spacing=10,
         scroll_frame_display_count=4,
         scroll_frame_width=65,
+        main_frame_initial_size={200,200},
+        preview_icon_size={75,75},
     },-- end of profile
 }--end of defaults
 
@@ -52,6 +54,8 @@ function purps:OnInitialize()
     
     self.interface:populate_scroll_child()
     self.interface:update_scroll_parameters()
+    self.interface:update_main_frame_paramters()
+    
     
 end
 
