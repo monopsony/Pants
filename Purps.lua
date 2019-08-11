@@ -1,7 +1,7 @@
 PurpsAddon=LibStub("AceAddon-3.0"):NewAddon("PurpsAddon","AceConsole-3.0","AceComm-3.0","AceEvent-3.0","AceSerializer-3.0")
 local purps=PurpsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
-local unpack,ipairs,pairs=unpack,ipairs,pairs
+local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 purps.colors={
     ["epic"]={0.64,0.21,0.93},
     ["epic_hex"]="136207",
@@ -33,6 +33,7 @@ local defaults={
     profile={
         scroll_item_size={40,40},
         scroll_item_default_icon=136207,
+        tertiary_stats_delimiter="//",
         scroll_item_spacing=10,
         scroll_frame_display_count=4,
         scroll_frame_width=65,
@@ -74,8 +75,44 @@ function purps:itemlink_info(ilink)
         itemEquipLoc=itemEquipLoc,
         itemIcon=itemIcon,
         itemClassID=itemClassID,
-        itemSubClassID=itemSubClassID
+        itemSubClassID=itemSubClassID,
+        itemTertiary=purps:get_tertiary_stats(itemLink),
         }
+end
+
+local help_table1={}
+local GetItemStats=GetItemStats
+function purps:get_tertiary_stats(itemLink)
+    --mostly borrowed from RCLootCouncil
+    --https://www.curseforge.com/wow/addons/rclootcouncil
+	local delimiter=self.para.tertiary_stats_delimiter or "/"
+	wipe(help_table1)
+	GetItemStats(itemLink,help_table1)
+	local text = ""
+	for k, _ in pairs(help_table1) do
+		if k:find("SOCKET") then
+			text = "Socket"
+			break
+		end
+	end
+    
+	if help_table1["ITEM_MOD_CR_AVOIDANCE_SHORT"] then
+		if text ~= "" then text = text..delimiter end
+		text = text.._G.ITEM_MOD_CR_AVOIDANCE_SHORT
+	end
+	if help_table1["ITEM_MOD_CR_LIFESTEAL_SHORT"] then
+		if text ~= "" then text = text..delimiter end
+		text = text.._G.ITEM_MOD_CR_LIFESTEAL_SHORT
+	end
+	if help_table1["ITEM_MOD_CR_SPEED_SHORT"] then
+		if text ~= "" then text = text..delimiter end
+		text = text.._G.ITEM_MOD_CR_SPEED_SHORT
+	end
+	if help_table1["ITEM_MOD_CR_STURDINESS_SHORT"] then -- Indestructible
+		if text ~= "" then text = text..delimiter end
+		text = text.._G.ITEM_MOD_CR_STURDINESS_SHORT
+	end    
+    return text
 end
 
 --/script DEFAULT_CHAT_FRAME:AddMessage("\124cffff8000\124Hitem:77949::::::::120:::::\124h[Golad, Twilight of Aspects]\124h\124r");
@@ -98,8 +135,7 @@ local chat_commands={
         if not purps:is_itemlink(msg) then purps:send_user_message("add_items_none_found") end
         local msg=separate_itemlinks(msg)
         local args={self:GetArgs(msg,10,1)}
-        
-        
+   
         for i,v in ipairs(args) do
             if self:is_itemlink(v) then self:add_items_to_session(v) end
         end

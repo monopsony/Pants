@@ -30,15 +30,44 @@ do
     sizer:SetScript("OnDragStart",function() frame:StartSizing("BOTTOMRIGHT") end)
     sizer:SetScript("OnDragStop",function() frame:StopMovingOrSizing() end)  
     
-    
+    --preview icon
     frame.preview_icon=ui:Frame(frame,75,75)
     local icon=frame.preview_icon
     icon:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-10)
+    
+    
+    local function set_icon_tooltip(self)
+    
+        local item_index=purps.interface.currently_selected_item or nil
+        if not item_index then return "N/A" end 
+                
+        local page=purps.current_session[item_index]
+        local itemLink=page.item_info.itemLink    
+        
+        self:SetHyperlink(itemLink)
+    end
+    
+    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"main_frame_icon_tooltip","TOPRIGHT",true)
+
     
     icon.texture=ui:Texture(icon,75,75)
     local txt=icon.texture
     txt:SetAllPoints()
     
+    
+    --info texts
+    frame.text_item_name=ui:FontString(frame,"")
+    frame.text_item_name:SetPoint("TOPLEFT",icon,"TOPRIGHT",10,0)
+
+    frame.text_item_info=ui:FontString(frame,"")
+    frame.text_item_info:SetPoint("TOPLEFT",frame.text_item_name,"BOTTOMLEFT",0,-5)
+
+    frame.text_item_level=ui:FontString(frame,"")
+    frame.text_item_level:SetPoint("TOPLEFT",frame.text_item_info,"BOTTOMLEFT",0,-5)
+
+    frame.text_item_extra=ui:FontString(frame,"")
+    frame.text_item_extra:SetPoint("TOPLEFT",frame.text_item_level,"BOTTOMLEFT",0,-5)
+
 end
 
 function interface:update_main_frame_paramters()
@@ -59,8 +88,17 @@ function interface:update_scroll_parameters()
 
 end
 
-function interface:populate_scroll_child()
+local function scroll_child_OnClick(self)
+    if not self.session_index then return end
+    
+    interface.currently_selected_item=self.session_index
+    interface:apply_selected_item()
+    
+    
+    
+end
 
+function interface:populate_scroll_child()
 
     local para=purps.para
     local scrollChild=self.session_scroll_panel.scrollChild
@@ -70,12 +108,13 @@ function interface:populate_scroll_child()
         if not scrollChild.items[i] then scrollChild.items[i]=ui:HighlightButton(scrollChild,50,50,nil) end
         local btn=scrollChild.items[i]
         btn:SetSize(unpack(para.scroll_item_size))
+        btn.OnClick=scroll_child_OnClick
         if i==1 then 
             btn:SetPoint("TOP")
         else
             btn:SetPoint("TOP",scrollChild.items[i-1],"BOTTOM",0,-para.scroll_item_spacing)
         end
-        btn:SetScript("OnClick",function() print(i) end)
+        btn:SetScript("OnClick",btn.OnClick)
         
         
         if not btn.item_texture then btn.item_texture=ui:Texture(btn,50,50) end
@@ -83,22 +122,48 @@ function interface:populate_scroll_child()
         btn.item_texture:SetTexture(para.scroll_item_default_icon)
     end
     
-    
 end
 
 function interface:apply_session_to_scroll()
     local items=purps.current_session
-    local n_items=#items
     local scroll_items=interface.session_scroll_panel.scrollChild.items
+    local order=purps:get_session_order()
     
-    for i=1,n_items do
+    for i=1,#order do
         scroll_items[i]:Show()
-        scroll_items[i].item_texture:SetTexture(items[i].item_info.itemIcon)
+        local j=order[i]
+        scroll_items[i].session_index=j
+        scroll_items[i].item_texture:SetTexture(items[j].item_info.itemIcon)
     end
     
-    for i=n_items+1,20 do
+    for i=#order+1,20 do
         scroll_items[i]:Hide()
     end
+    
+end
+
+local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
+function interface:apply_selected_item()
+
+    local item_index=self.currently_selected_item or nil
+    if not item_index then return end 
+    --TBA add error message
+    
+    local para=purps.para
+    local page=purps.current_session[item_index]
+    local item=page.item_info
+    
+    local frame=self.session_main_frame
+    
+    --apply icon 
+    frame.preview_icon.texture:SetTexture(item.itemIcon or para.scroll_item_default_icon)
+
+    --apply texts
+    frame.text_item_name:SetText(  ("|c%s%s|r"):format( (item.itemRarity and ITEM_QUALITY_COLORS[item.itemRarity].color:GenerateHexColor()) or "ffffffff", item.itemName)  )
+    frame.text_item_info:SetText(  ("%s, %s"):format(item.itemSubType or "",(item.itemEquipLoc and _G[item.itemEquipLoc] ) or "") )
+    frame.text_item_level:SetText(  ("ilvl: %d"):format(item.itemLevel or 69))
+    frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
+    
     
 end
 

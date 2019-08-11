@@ -15,6 +15,18 @@ function purps:add_items_to_session(msg)
     
 end
 
-
+local session_order,wipe={},table.wipe
+function purps:get_session_order()
+    local session=self.current_session
+    if not session then return end
+    
+    wipe(session_order)
+    --TBA PROPER ORDER BASED ON PARAS
+    for i=1,#session do
+        session_order[i]=i
+    end
+   
+    return session_order
+end
 
 
