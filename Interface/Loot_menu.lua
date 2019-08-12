@@ -8,15 +8,12 @@ do
     --interface.session_main_frame=ui:PanelWithTitle(UIParent,200,200,"MAIN FRAME")
     interface.session_main_frame=ui:Panel(UIParent,200,200)
     local frame=interface.session_main_frame
-    frame:SetPoint("CENTER")
+    --frame:SetPoint("CENTER")
     
     frame:Show()
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart",frame.StartMoving)
-    frame:SetScript("OnDragStop",frame.StopMovingOrSizing)  
-    frame:SetMinResize(100,100)
     frame:SetClipsChildren(true)
 
 
@@ -27,8 +24,6 @@ do
     frame:SetResizable(true)
     sizer:EnableMouse(true)
     sizer:RegisterForDrag("LeftButton")
-    sizer:SetScript("OnDragStart",function() frame:StartSizing("BOTTOMRIGHT") end)
-    sizer:SetScript("OnDragStop",function() frame:StopMovingOrSizing() end)  
     
     --preview icon
     frame.preview_icon=ui:Frame(frame,75,75)
@@ -47,7 +42,7 @@ do
         self:SetHyperlink(itemLink)
     end
     
-    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"main_frame_icon_tooltip","TOPRIGHT",true)
+    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"PurpsAddon_main_frame_icon_tooltip","TOPRIGHT",true)
 
     
     icon.texture=ui:Texture(icon,75,75)
@@ -70,22 +65,33 @@ do
 
 end
 
-function interface:update_main_frame_paramters()
+function interface:update_main_frame_parameters(initialize)
     local frame=interface.session_main_frame
     local icon=frame.preview_icon
     local para=purps.para
+    local panel=interface.session_scroll_panel
+    frame:ClearAllPoints()
+    frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
+    frame:SetPoint("BOTTOMLEFT",panel,"BOTTOMRIGHT")
+    frame:SetWidth(para.main_frame_width)
     
-    frame:SetSize(unpack(para.main_frame_initial_size))
+    frame:SetMinResize(100,para.min_resize_height)
+    frame:SetMaxResize(2000,para.max_resize_height)
     
     icon:SetSize(unpack(para.preview_icon_size))
-    icon.texture:SetTexture(para.scroll_item_default_icon)
+    if initialize then icon.texture:SetTexture(para.scroll_item_default_icon) end
 end
 
-function interface:update_scroll_parameters()
+function interface:update_scroll_parameters(initialize)
     local para=purps.para
     local panel=self.session_scroll_panel
-    panel:SetWidth(para.scroll_frame_width)
-
+    panel:SetWidth(para.scroll_frame_width or 60)
+    panel:SetHeight(para.scroll_frame_height or 200)
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT",UIparent,"BOTTOMLEFT",unpack(para.scroll_frame_pos))
+    
+    panel:SetMinResize(para.scroll_frame_width,para.min_resize_height)
+    panel:SetMaxResize(para.scroll_frame_width,para.max_resize_height)
 end
 
 local function scroll_child_OnClick(self)
@@ -95,6 +101,22 @@ local function scroll_child_OnClick(self)
     interface:apply_selected_item()
     
     
+    
+end
+
+local function scroll_child_tooltip(self)
+
+    local item_index=self.button.session_index or nil
+    if not item_index then return end 
+
+    local page=purps.current_session[item_index]
+    if not page then return end
+
+    local itemLink=page.item_info.itemLink    
+    if not itemLink then return end
+
+    self:SetHyperlink(itemLink)
+    self:SetHyperlink(itemLink)
     
 end
 
@@ -120,6 +142,10 @@ function interface:populate_scroll_child()
         if not btn.item_texture then btn.item_texture=ui:Texture(btn,50,50) end
         btn.item_texture:SetAllPoints()
         btn.item_texture:SetTexture(para.scroll_item_default_icon)
+        
+    
+        btn.tooltip=ui:Tooltip(btn,scroll_child_tooltip,"PurpsAddon_scroll_frame_icon_tooltip"..tostring(i),"TOPRIGHT",true)
+        btn.tooltip.button=btn
     end
     
 end
@@ -178,15 +204,47 @@ do
     interface.session_scroll_panel=panel
     --panel.scrollChild / scrollFrame / scrollBar
     
-    panel:SetPoint("TOPRIGHT",frame,"TOPLEFT")
-    panel:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT")
+    panel:SetPoint("TOPLEFT",UIparent,"BOTTOMLEFT",50,850)
+    panel:SetMovable(true)
+    panel:SetResizable(true)
+    frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
+    frame:SetPoint("BOTTOMLEFT",panel,"BOTTOMRIGHT")
+   
+    frame:SetScript("OnDragStart",function() 
+        panel:StartMoving()
+    end)
+    frame:SetScript("OnDragStop",function() 
+        panel:StopMovingOrSizing() 
+        local x,y=panel:GetLeft(),panel:GetTop()
+        purps.para.scroll_frame_pos[1]=x
+        purps.para.scroll_frame_pos[2]=y
+        
+        purps.interface:update_scroll_parameters()
+    end)  
     
-    
+    local sizer=frame.sizer_frame
+    sizer:SetScript("OnDragStart",function()
+        local x,y=unpack(purps.para.scroll_frame_pos)
+        x=x+purps.para.scroll_frame_width
+        frame:ClearAllPoints()
+        frame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
+        frame:SetSize(purps.para.main_frame_width,purps.para.scroll_frame_height)
+        panel:ClearAllPoints()
+        panel:SetPoint("TOPRIGHT",frame,"TOPLEFT")
+        panel:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT")
+        frame:StartSizing("BOTTOMRIGHT") 
+    end)
+    sizer:SetScript("OnDragStop",function() 
+        frame:StopMovingOrSizing() 
+        panel:StopMovingOrSizing()
+        local w,h=frame:GetWidth(),frame:GetHeight()
+        purps.para.main_frame_width=w
+        purps.para.scroll_frame_height=h
+        purps.interface:update_scroll_parameters()
+        purps.interface:update_main_frame_parameters()
+    end)  
     
 end
-
-
-
 
 
 

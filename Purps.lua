@@ -37,15 +37,20 @@ local defaults={
         scroll_item_spacing=10,
         scroll_frame_display_count=4,
         scroll_frame_width=65,
-        main_frame_initial_size={200,200},
+        scroll_frame_height=200,
+        scroll_frame_pos={500,500},
+        main_frame_width=200,
         preview_icon_size={75,75},
+        voting_frame_width=200,
+        min_resize_height=100,
+        max_resize_height=1500,
     },-- end of profile
 }--end of defaults
 
 
 function purps:OnInitialize()
     
-    self.db=LibStub("AceDB-3.0"):New("RaidNotesDB",defaults,true)  --true sets the default profile to a profile called "Default"
+    self.db=LibStub("AceDB-3.0"):New("PurpsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
                                                                  --see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0
     self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
     self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
@@ -54,8 +59,8 @@ function purps:OnInitialize()
     self.para=self.db.profile
     
     self.interface:populate_scroll_child()
-    self.interface:update_scroll_parameters()
-    self.interface:update_main_frame_paramters()
+    self.interface:update_scroll_parameters(true)
+    self.interface:update_main_frame_parameters(true)
     
     
 end

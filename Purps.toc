@@ -2,7 +2,7 @@
 ## Title: Purps
 ## Author: Mono
 ## DefaultState: disabled
-## SavedVariables: RaidNotesDB
+## SavedVariables: PurpsAddonDB
 
 libs.xml
 Purps.lua
