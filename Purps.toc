@@ -8,6 +8,7 @@ libs.xml
 Purps.lua
 Utils.lua
 Session.lua
+Comms.lua
 
 Interface\Loot_menu.lua
 

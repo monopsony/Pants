@@ -8,7 +8,7 @@ purps.current_session={}
 --information will be sent as session is started
 purps.current_session_paras={
     response_names={[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
-    response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
+    response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={1,0,0,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
 }
 
 local session=purps.current_session
@@ -39,7 +39,7 @@ end
 
 
 
-local test_data={
+purps.session_test_data={
     {"Bob",1,320,nil,},
     {"Patrick",2,320,nil},
     {"John",1,345,nil},
@@ -61,6 +61,6 @@ local test_data={
 
 function purps:raid_table_test_data()
     local tbl=purps.interface.raid_table
-    tbl:SetData(test_data)
+    tbl:SetData(self.session_test_data)
     
 end

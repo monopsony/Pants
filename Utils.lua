@@ -11,6 +11,7 @@ purps.predefined_messages={
     ["name"]="|cffa335eePurps|r",
     ["add_items_none_found"]="No items found. Type '/purps add' followed by shift-clicking relevant items to add them to the session.",
     ["help_message"]=function() return ("This is the %s help message,"):format(purps.predefined_messages.name) end,
+    ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
 }
 
 
@@ -106,3 +107,22 @@ function purps:RGBToHex(r, g, b)
 	return string.format("%02x%02x%02x", r*255, g*255, b*255)
 end
 
+
+local LibS =LibStub:GetLibrary("AceSerializer-3.0")
+local LibD=LibStub:GetLibrary("LibDeflate")
+
+function purps:serialize_compress_encode(tbl)
+    if (not tbl) or (not type(tbl)=="table") then return nil end
+    local s1=LibS:Serialize(tbl)
+    local s2=LibD:CompressDeflate(s1)
+    local s3=LibD:EncodeForWoWAddonChannel(s2)
+    return s3
+end
+
+function purps:decode_decompress_deserialize(str)
+    if (not str) or (not type(str)=="string") then return nil end
+    local s1=LibD:DecodeForWoWAddonChannel(str)
+    local s2=LibD:DecompressDeflate(s1)
+    local _,s3=LibS:Deserialize(s2)
+    return s3
+end

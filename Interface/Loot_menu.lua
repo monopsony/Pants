@@ -166,9 +166,7 @@ do
     tbl:EnableSelection(true)
     
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
-    
-    for k,v in pairs(tbl) do print(k,v) end
-    
+        
 end
 
 function interface:update_main_frame_parameters(initialize)
@@ -391,7 +389,11 @@ do
 
 end
 
-
+function interface:refresh_sort_raid_table()
+    local tbl=self.raid_table
+    tbl:Refresh()
+    tbl:SortData()
+end
 
 
 

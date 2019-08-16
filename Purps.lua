@@ -22,6 +22,10 @@ local defaults={
         voting_frame_width=200,
         min_resize_height=100,
         max_resize_height=1500,
+        session_paras={
+            response_names={[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
+            response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
+        }, --end of session_paras
     },-- end of profile
 }--end of defaults
 
@@ -64,6 +68,18 @@ local chat_commands={
     
     ["test_table"]=function(...)
         PurpsAddon:raid_table_test_data()
+    end,
+    
+    ["raid_ping"]=function()     
+        purps:send_raid_comm("PurpsPing")
+    end,
+    
+    ["send_session_paras"]=function(self)
+        self:send_session_paras()
+    end,
+    
+    ["send_current_session"]=function(self)
+        self:send_current_session()
     end,
     
     ["metatable"]={__index=function(self,key) return self["help"] end},
