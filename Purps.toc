@@ -6,6 +6,7 @@
 
 libs.xml
 Purps.lua
+Utils.lua
 Session.lua
 
 Interface\Loot_menu.lua

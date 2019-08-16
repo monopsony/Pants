@@ -3,6 +3,32 @@ purps.interface={}
 local interface=purps.interface
 local ui=LibStub('StdUi')
 
+local function update_scroll_XY_paras()
+    local panel=purps.interface.session_scroll_panel
+    local x,y=panel:GetLeft(),panel:GetTop()
+    purps.para.scroll_frame_pos[1]=x
+    purps.para.scroll_frame_pos[2]=y
+            
+end
+
+local floor=floor
+local function raid_table_adapt_rows_to_height()
+    local frame=interface.session_main_frame
+    local tbl=frame.raid_table
+    local para=purps.para
+    
+    local h=tbl:GetHeight()
+    
+    if h<120 then tbl:Hide() else tbl:Show() end
+    
+    local rh=para.raid_table_row_height
+    local n=floor(h/rh)
+    
+    tbl:SetDisplayRows(0,0)
+    tbl:SetDisplayRows(n,rh)
+    
+end
+
 --create loot menu main/vote frame
 do
     --interface.session_main_frame=ui:PanelWithTitle(UIParent,200,200,"MAIN FRAME")
@@ -62,7 +88,87 @@ do
 
     frame.text_item_extra=ui:FontString(frame,"")
     frame.text_item_extra:SetPoint("TOPLEFT",frame.text_item_level,"BOTTOMLEFT",0,-5)
+    
+    
+end
 
+local table_column_default={
+
+    {
+        name="Name",
+        width=80,
+        align="LEFT",
+        index=1,
+        format="text",
+        sortable=false,
+    }, 
+    
+    {
+        name="Response",
+        width=175,
+        align="LEFT",
+        index=2,
+        format=function(response_id)
+            local s=purps.current_session_paras.response_names[response_id] or "N/A"
+            return s
+            --purps.current_session_paras
+        end,
+        color=function(_,_,tbl)
+            local response_id=tbl[2]
+            local r,g,b,a=unpack(purps.current_session_paras.response_colours[response_id] or {1,1,1,1})
+            return {r=r,g=g,b=b,a=a or 1}
+        end,
+        --compareSort=function(self,rowA,rowB,sortBy)
+        --    local a = self:GetRow(rowA)[2]
+        --    local b = self:GetRow(rowB)[2]           
+        --    local column=self.columns[sortBy]
+        --    local direction=column.sort or column.defaultSort or 'asc'
+        --    if direction:lower() == 'asc' then 
+        --        return a>b
+        --   else
+        --        return a<b
+        --    end
+        --    
+        --end
+    },   
+    
+    {
+        name="iLvl",
+        sortable=false,
+        width=30,
+        align="LEFT",
+        index=3,
+        format="text",
+    }, 
+    
+    {
+        name="Other",
+        sortable=false,
+        width=30,
+        align="LEFT",
+        index=4,
+        format="icon",
+        
+    }, 
+    
+}
+
+
+
+--create loot menu table
+do
+    local frame=interface.session_main_frame
+    local tbl=ui:ScrollTable(frame,table_column_default,0,20)
+    frame.raid_table=tbl
+    interface.raid_table=tbl
+    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-150)
+    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-150)
+    tbl:EnableSelection(true)
+    
+    tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
+    
+    for k,v in pairs(tbl) do print(k,v) end
+    
 end
 
 function interface:update_main_frame_parameters(initialize)
@@ -80,6 +186,22 @@ function interface:update_main_frame_parameters(initialize)
     
     icon:SetSize(unpack(para.preview_icon_size))
     if initialize then icon.texture:SetTexture(para.scroll_item_default_icon) end
+    
+    interface:udpate_raid_table_parameters()
+end
+
+function interface:udpate_raid_table_parameters(initialize)
+    local frame=interface.session_main_frame
+    local tbl=frame.raid_table
+    local para=purps.para
+    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",para.raid_table_x_inset,-para.raid_table_y_inset)
+    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-para.raid_table_x_inset,-para.raid_table_y_inset)
+    tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,para.raid_table_bottom_inset)
+    
+    --tbl:SetDisplayRows(0,para.raid_table_row_height)
+    --tbl:SetDisplayRows(10,para.raid_table_row_height)
+    
+    raid_table_adapt_rows_to_height()
 end
 
 function interface:update_scroll_parameters(initialize)
@@ -92,6 +214,10 @@ function interface:update_scroll_parameters(initialize)
     
     panel:SetMinResize(para.scroll_frame_width,para.min_resize_height)
     panel:SetMaxResize(para.scroll_frame_width,para.max_resize_height)
+    
+    local size=para.scroll_frame_width/3
+    panel.expand_left_button:SetSize(size,size)
+    panel.expand_right_button:SetSize(size,size)
 end
 
 local function scroll_child_OnClick(self)
@@ -193,6 +319,11 @@ function interface:apply_selected_item()
     
 end
 
+local function toggle_frame(frame)
+    if (not frame) or (not frame.Show) then return end
+    if frame:IsShown() then frame:Hide() else frame:Show() end
+end
+
 --create loot menu scroll frame item picker
 do
     
@@ -207,6 +338,7 @@ do
     panel:SetPoint("TOPLEFT",UIparent,"BOTTOMLEFT",50,850)
     panel:SetMovable(true)
     panel:SetResizable(true)
+    panel:EnableMouse(true)
     frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
     frame:SetPoint("BOTTOMLEFT",panel,"BOTTOMRIGHT")
    
@@ -215,14 +347,12 @@ do
     end)
     frame:SetScript("OnDragStop",function() 
         panel:StopMovingOrSizing() 
-        local x,y=panel:GetLeft(),panel:GetTop()
-        purps.para.scroll_frame_pos[1]=x
-        purps.para.scroll_frame_pos[2]=y
-        
+        update_scroll_XY_paras()      
         purps.interface:update_scroll_parameters()
     end)  
     
     local sizer=frame.sizer_frame
+    sizer:SetFrameLevel(frame:GetFrameLevel()+10)
     sizer:SetScript("OnDragStart",function()
         local x,y=unpack(purps.para.scroll_frame_pos)
         x=x+purps.para.scroll_frame_width
@@ -242,9 +372,33 @@ do
         purps.para.scroll_frame_height=h
         purps.interface:update_scroll_parameters()
         purps.interface:update_main_frame_parameters()
+        
+        raid_table_adapt_rows_to_height()
     end)  
     
+    local interface=interface
+    --create vote/main expansion buttons
+    panel.expand_left_button=ui:SquareButton(panel,30,30,"LEFT")
+    local left=panel.expand_left_button
+    left:SetScript("OnClick",function() toggle_frame(interface.session_main_frame) end)
+    left:SetPoint("BOTTOMLEFT",panel,"TOPLEFT")
+    
+    panel.expand_right_button=ui:SquareButton(panel,30,30,"RIGHT")
+    local right=panel.expand_right_button
+    right:SetScript("OnClick",function() toggle_frame(interface.session_main_frame) end)
+    right:SetPoint("BOTTOMRIGHT",panel,"TOPRIGHT")
+    
+
 end
+
+
+
+
+
+
+
+
+
 
 
 
