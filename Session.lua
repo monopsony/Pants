@@ -38,9 +38,8 @@ function purps:get_session_order()
 end
 
 
-
 purps.session_test_data={
-    {"Bob",1,320,nil,},
+    {"Bob",1,320,nil},
     {"Patrick",2,320,nil},
     {"John",1,345,nil},
     {"Lucie",3,676,nil},
@@ -62,5 +61,31 @@ purps.session_test_data={
 function purps:raid_table_test_data()
     local tbl=purps.interface.raid_table
     tbl:SetData(self.session_test_data)
-    
+end
+
+
+function purps:generate_group_member_list()
+    if not IsInGroup() then return {} end
+    local a={}
+    for i=1,40 do 
+        local name,_,_,_,class=GetRaidRosterInfo(i)
+        if not name then break end
+        a[#a+1]={self:convert_to_full_name(name),0,0,"",nil,nil,class=class}  --name,response_id,ilvl,note,item1,item2
+    end
+    return a
+end
+
+function purps:start_session()
+    local tbl=self.current_session
+    if (not tbl) or (#tbl==0) then 
+        self:send_user_message("add_items_none_found")
+        return
+    end
+        
+    for i=1,#tbl do 
+        local t=tbl[i]
+        t.responses=self:generate_group_member_list()
+    end
+
+    purps:send_current_session()
 end
