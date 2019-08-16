@@ -92,17 +92,27 @@ do
     
 end
 
+local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local table_column_default={
-
+    --Name
     {
         name="Name",
-        width=80,
+        width=160,
         align="LEFT",
         index=1,
-        format="text",
+        format=function(name)
+            return purps:remove_realm(name)
+        end,
+        
+        color=function(_,_,tbl)
+            local class=tbl.class or "Priest"
+            local color=RAID_CLASS_COLORS[class:upper()]
+            return {r=color.r,g=color.g,b=color.b}
+        end,
         sortable=false,
     }, 
     
+    --Response
     {
         name="Response",
         width=175,
@@ -132,6 +142,7 @@ local table_column_default={
         --end
     },   
     
+    --ilvl
     {
         name="iLvl",
         sortable=false,
@@ -141,6 +152,7 @@ local table_column_default={
         format="text",
     }, 
     
+    --other
     {
         name="Other",
         sortable=false,
@@ -292,6 +304,18 @@ function interface:apply_session_to_scroll()
     
 end
 
+function interface:table_reload_item()
+    local tbl=self.raid_table
+    
+    local item_index=self.currently_selected_item or nil
+    if not item_index then return end 
+    
+    if (not purps.current_session) or not (purps.current_session[item_index]) then return end
+        
+    tbl:SetData(purps.current_session[item_index].responses)
+    
+end
+
 local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
 function interface:apply_selected_item()
 
@@ -314,7 +338,7 @@ function interface:apply_selected_item()
     frame.text_item_level:SetText(  ("ilvl: %d"):format(item.itemLevel or 69))
     frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
     
-    
+    self:table_reload_item()
 end
 
 local function toggle_frame(frame)

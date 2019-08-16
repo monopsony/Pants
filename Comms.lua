@@ -16,15 +16,14 @@ local registered_comms={
         local tbl=purps:decode_decompress_deserialize(data)
         purps.current_session=tbl
         purps.interface:apply_session_to_scroll()
+        
     end,
 }
-
-
 
 function purps:send_raid_comm(prefix,data)
     if (not IsInGroup()) then return end
     local channel=(IsInRaid() and "RAID") or "PARTY"
-    self:SendCommMessage(prefix,data,channel)
+    self:SendCommMessage(prefix,data or "N/A",channel)
 end
 
 function purps:OnCommReceived(prefix,data,channel,sender)
@@ -35,7 +34,6 @@ for k,v in pairs(registered_comms) do
     purps:RegisterComm(k)
 end
 
-
 function purps:send_session_paras()
     local para=self.para.session_paras
     local s=self:serialize_compress_encode(para)
@@ -45,5 +43,7 @@ end
 function purps:send_current_session()
     local session=self.current_session
     local s=self:serialize_compress_encode(session)
+    self:send_session_paras()
     self:send_raid_comm("PurpsSCurr",s)
 end
+

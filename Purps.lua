@@ -23,8 +23,8 @@ local defaults={
         min_resize_height=100,
         max_resize_height=1500,
         session_paras={
-            response_names={[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
-            response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
+            response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
+            response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
         }, --end of session_paras
     },-- end of profile
 }--end of defaults
@@ -78,8 +78,16 @@ local chat_commands={
         self:send_session_paras()
     end,
     
+    ["reset_profile"]=function()
+        purps.db:ResetProfile()
+    end,
+    
     ["send_current_session"]=function(self)
         self:send_current_session()
+    end,
+    
+    ["start_session"]=function(self)
+        self:start_session()
     end,
     
     ["metatable"]={__index=function(self,key) return self["help"] end},

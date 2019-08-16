@@ -9,7 +9,7 @@ purps.colors={
 
 purps.predefined_messages={
     ["name"]="|cffa335eePurps|r",
-    ["add_items_none_found"]="No items found. Type '/purps add' followed by shift-clicking relevant items to add them to the session.",
+    ["add_items_none_found"]="No items were found. Type '/purps add' followed by shift-clicking relevant items to add them to the session.",
     ["help_message"]=function() return ("This is the %s help message,"):format(purps.predefined_messages.name) end,
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
 }
@@ -126,3 +126,33 @@ function purps:decode_decompress_deserialize(str)
     local _,s3=LibS:Deserialize(s2)
     return s3
 end
+
+local sfind=string.find
+function purps:convert_to_full_name(s)
+    if (not s) or not (type(s)=="string") then return s end
+    local realm=GetRealmName()
+    if not sfind(s,"-") then s=("%s-%s"):format(s,realm) end
+    return s
+end
+
+local strsub=string.sub
+function purps:remove_realm(s)
+    if (not s) or not (type(s)=="string") then return s end
+    return strsub(s,1,(s:find("-") or 0)-1)
+end
+
+function purps:table_deep_copy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[self:table_deep_copy(orig_key)] = self:table_deep_copy(orig_value)
+        end
+        setmetatable(copy, self:table_deep_copy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
