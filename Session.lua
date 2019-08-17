@@ -67,8 +67,11 @@ end
 function purps:generate_group_member_list()
     if not IsInGroup() then return {} end
     local a={}
-    for i=1,40 do 
-        local name,_,_,_,class=GetRaidRosterInfo(i)
+    local list=self:get_units_list()
+    for i=1,#list do 
+        local unit=list[i]
+        local name=UnitName(unit)
+        local _,class=UnitClass(unit)
         if not name then break end
         a[#a+1]={self:convert_to_full_name(name),0,0,"",nil,nil,class=class}  --name,response_id,ilvl,note,item1,item2
     end
@@ -86,6 +89,19 @@ function purps:start_session()
         local t=tbl[i]
         t.responses=self:generate_group_member_list()
     end
-
+    purps.active_session=true
     purps:send_current_session()
+end
+
+function purps:name_index_in_session(name,session_index)
+    if (not name) or (not session_index) then return nil end
+    if (not self.current_session[session_index]) or (not self.current_session[session_index].responses) then return nil end
+    local session=self.current_session[session_index].responses
+    name=self:convert_to_full_name(name)
+    
+    
+    for i=1,#session do
+        if session[i][1]==name then return i end
+    end
+    return nil
 end

@@ -11,9 +11,9 @@ local defaults={
         scroll_item_spacing=10,
         scroll_frame_display_count=4,
         scroll_frame_width=65,
-        scroll_frame_height=200,
+        scroll_frame_height=400,
         scroll_frame_pos={500,500},
-        main_frame_width=200,
+        main_frame_width=300,
         raid_table_y_inset=175,
         raid_table_x_inset=10,
         raid_table_bottom_inset=40,
@@ -22,6 +22,8 @@ local defaults={
         voting_frame_width=200,
         min_resize_height=100,
         max_resize_height=1500,
+        vote_frame_height=200,
+        vote_frame_width=200,
         session_paras={
             response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
             response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
@@ -29,8 +31,9 @@ local defaults={
     },-- end of profile
 }--end of defaults
 
-
 function purps:OnInitialize()
+    local name=UnitName("player")
+    self.full_name=self:convert_to_full_name(name)
     
     self.db=LibStub("AceDB-3.0"):New("PurpsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
                                                                  --see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0
@@ -43,6 +46,7 @@ function purps:OnInitialize()
     self.interface:populate_scroll_child()
     self.interface:update_scroll_parameters(true)
     self.interface:update_main_frame_parameters(true)
+    self.interface:update_vote_frame_parameters(true)
     
     
 end

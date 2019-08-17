@@ -156,3 +156,13 @@ function purps:table_deep_copy(orig)
     return copy
 end
 
+local raid_units={}
+for i=1,40 do raid_units[i]="raid"..tostring(i) end
+local party_units={"player","party1","party2","party3","party4"}
+local player_list={"player"}
+function purps:get_units_list()
+    if not IsInGroup() then return player_list end
+    return (IsInRaid() and raid_units) or party_units
+end
+
+

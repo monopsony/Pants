@@ -10,13 +10,14 @@ local registered_comms={
         local tbl=purps:decode_decompress_deserialize(data)
         purps.current_session_paras=tbl
         purps.interface:refresh_sort_raid_table()
+        purps.interface:update_response_dd()
     end,
     
     ["PurpsSCurr"]=function(data,_,sender)
         local tbl=purps:decode_decompress_deserialize(data)
         purps.current_session=tbl
+        purps.active_session=true
         purps.interface:apply_session_to_scroll()
-        
     end,
 }
 
