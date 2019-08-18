@@ -19,6 +19,13 @@ local registered_comms={
         purps.active_session=true
         purps.interface:apply_session_to_scroll()
     end,
+    
+    ["PurpsSResUpd"]=function(data,_,sender)
+        local tbl=purps:decode_decompress_deserialize(data)
+        if not tbl then return end
+        purps:apply_response_update(sender,tbl)
+    end,
+    
 }
 
 function purps:send_raid_comm(prefix,data)
@@ -48,3 +55,8 @@ function purps:send_current_session()
     self:send_raid_comm("PurpsSCurr",s)
 end
 
+function purps:send_response_update(response)
+    if not response or not (type(response)=="table") then return end
+    local s=self:serialize_compress_encode(response)
+    self:send_raid_comm("PurpsSResUpd",s)
+end

@@ -73,7 +73,7 @@ function purps:generate_group_member_list()
         local name=UnitName(unit)
         local _,class=UnitClass(unit)
         if not name then break end
-        a[#a+1]={self:convert_to_full_name(name),0,0,"",nil,nil,class=class}  --name,response_id,ilvl,note,item1,item2
+        a[#a+1]={self:convert_to_full_name(name),0,0,nil,nil,"",class=class}  --name,response_id,ilvl,item1,item2,note
     end
     return a
 end
@@ -105,3 +105,41 @@ function purps:name_index_in_session(name,session_index)
     end
     return nil
 end
+
+
+function purps:apply_response_update(sender,response)
+    if not response or not (type(response)=="table") or (not sender) then return end
+    local item_index=response.item_index 
+    if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return end 
+    
+    sender=self:convert_to_full_name(sender)
+    local sender_id=self:name_index_in_session(sender,item_index)
+    if not sender_id then return end 
+    
+    response.item_index=nil
+    local current_response=self.current_session[item_index].responses[sender_id]
+        
+    for k,v in pairs(response) do 
+        current_response[k]=v
+    end
+    
+    --update interface if item is selected
+    if self.interface.currently_selected_item==item_index then
+        self.interface:refresh_sort_raid_table()
+    end
+    
+    if sender==self.full_name then self.interface:check_items_status() end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -134,6 +134,22 @@ do
     
     eb.scrollChild:SetMaxLetters(150)
     
+    
+    --vote button
+    frame.send_button=ui:Button(frame,75,25,"SEND")
+    local sb=frame.send_button
+    sb:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-20,20)
+    sb:SetScript("OnClick",function()
+        local item_index=purps.interface.currently_selected_item or nil
+        if not item_index then return end 
+    
+        local response=purps.interface:generate_response()
+        if not response then return end
+        
+        purps:send_response_update(response)
+        
+    end)
+    
 end
 
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
@@ -209,7 +225,21 @@ local table_column_default={
     
 }
 
+local help_table1,wipe={},table.wipe
+function interface:generate_response()
+    local item_index=self.currently_selected_item or nil
+    if not item_index then return end 
 
+    local vote=self.session_vote_frame
+    local a,b=vote.response_dd:GetValue() or 0,vote.note_eb:GetText() or ""
+    if a==0 then return nil end
+    wipe(help_table1)
+    help_table1[2]=a --response id
+    help_table1[6]=b --note id
+    help_table1.voted=true
+    help_table1.item_index=item_index
+    return help_table1
+end
 
 --create loot menu table
 do
