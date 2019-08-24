@@ -243,7 +243,7 @@ local table_column_default={
         end
     }, 
     
-    --equipped
+    --equipped 1
     {
         name="1",
         sortable=false,
@@ -267,6 +267,7 @@ local table_column_default={
         },
     }, 
     
+    --equipped 2
     {
         name="2",
         sortable=false,
@@ -289,9 +290,36 @@ local table_column_default={
 			end
         },
     }, 
-    
+ 
+    --note icon
+    {
+        name="Note",
+        sortable=false,
+        width=25,
+        align="LEFT",
+        index=6,
+        format="icon",
+        events={
+			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+				local cellData = rowData[columnData.index];
+                local eq=rowData.equipped
+                if (not eq) or (not eq[2]) then show_tooltip(cellFrame,false); return false end
+                
+				show_tooltip(cellFrame, true, eq[2]);
+				return false;
+			end,
+			OnLeave = function(rowFrame, cellFrame)
+				show_tooltip(cellFrame, false);
+				return false;
+			end
+        },
+    }, 
+ 
+
+ 
 }
 
+local 
 local help_table1,wipe={},table.wipe
 function interface:generate_response()
     local item_index=self.currently_selected_item or nil
