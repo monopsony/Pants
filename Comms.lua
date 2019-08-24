@@ -1,5 +1,6 @@
 local purps=PurpsAddon
 
+local afterDo,waiting_time=C_Timer.After,1
 local registered_comms={
     ["PurpsPing"]=function(data,channel,sender)
         if UnitIsUnit("player",sender) then sender="You" end
@@ -18,12 +19,19 @@ local registered_comms={
         purps.current_session=tbl
         purps.active_session=true
         purps.interface:apply_session_to_scroll()
+        
+        for i=1,#purps.current_session do
+            local purps=purps
+            afterDo(waiting_time,function() purps:send_equipped_items(i) end)
+        end
+        
     end,
     
     ["PurpsSResUpd"]=function(data,_,sender)
         local tbl=purps:decode_decompress_deserialize(data)
         if not tbl then return end
         purps:apply_response_update(sender,tbl)
+        
     end,
     
 }
@@ -60,3 +68,29 @@ function purps:send_response_update(response)
     local s=self:serialize_compress_encode(response)
     self:send_raid_comm("PurpsSResUpd",s)
 end
+
+local ipairs=ipairs
+function purps:send_equipped_items(session_index)
+    if (not session_index) or (not self.current_session[session_index]) then return end
+    local items=self:get_equipped_items(session_index)
+    local _,ilvl=GetAverageItemLevel()
+    local response={[3]=ilvl,item_index=session_index}
+
+    if not items then return self:send_response_update(response) end
+    response.equipped=items
+    self:send_response_update(response)
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+

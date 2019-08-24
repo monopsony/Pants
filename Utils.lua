@@ -14,6 +14,34 @@ purps.predefined_messages={
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
 }
 
+purps.item_loc_to_slot={
+    INVTYPE_AMMO={0},
+    INVTYPE_HEAD={1},
+    INVTYPE_NECK={2},
+    INVTYPE_SHOULDER={3},
+    INVTYPE_BODY={4},
+    INVTYPE_CHEST={5},
+    INVTYPE_WAIST={6},
+    INVTYPE_LEGS={7},
+    INVTYPE_FEET={8},
+    INVTYPE_WRIST={9},
+    INVTYPE_HAND={10},
+    INVTYPE_FINGER={11,12},
+    INVTYPE_TRINKET={13,14},
+    INVTYPE_CLOAK={15},
+    INVTYPE_WEAPON={16,17},
+    INVTYPE_SHIELD={17},
+    INVTYPE_WEAPONMAINHAND={16},
+    INVTYPE_WEAPONOFFHAND={17},
+    INVTYPE_2HWEAPON={16,17},
+    INVTYPE_RANGED={18},
+    INVTYPE_THROWN={18},
+    INVTYPE_RANGEDRIGHT={18},
+    INVTYPE_RELIC={18},
+    INVTYPE_TABARD={19},
+    INVTYPE_BAG={20,21,22,23},
+    INVTYPE_QUIVER={20,21,22,23},
+}
 
 function purps:send_user_message(key,...)
     local msg,s=(self.predefined_messages[key] or key) or "NO KEY GIVEN",""
@@ -130,7 +158,7 @@ end
 local sfind=string.find
 function purps:convert_to_full_name(s)
     if (not s) or not (type(s)=="string") then return s end
-    local realm=GetRealmName()
+    local realm=self.realm_name or ""
     if not sfind(s,"-") then s=("%s-%s"):format(s,realm) end
     return s
 end
@@ -164,5 +192,30 @@ function purps:get_units_list()
     if not IsInGroup() then return player_list end
     return (IsInRaid() and raid_units) or party_units
 end
+
+local UnitFulLName=UnitFullName
+function purps:unit_full_name(unit)
+    if not UnitExists(unit) then return end
+    local name,realm=UnitFullName(unit)
+    return ("%s-%s"):format(name,realm)
+end
+
+local ipairs=ipairs
+function purps:get_item_link_slot(slot)
+    if not slot then return end
+    local id=((type(slot)=="number") and {slot}) or ((type(slot)=="string") and self.item_loc_to_slot[slot]) or nil
+    if not id then return end
+    local links={}
+    for i,v in ipairs(id) do 
+        local item=ItemLocation:CreateFromEquipmentSlot(v)
+        if (item) and (item:IsValid()) then 
+            local link=C_Item.GetItemLink(item)
+            links[#links+1]=link
+        end
+    end
+        
+    return links
+end
+
 
 

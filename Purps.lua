@@ -32,8 +32,9 @@ local defaults={
 }--end of defaults
 
 function purps:OnInitialize()
-    local name=UnitName("player")
-    self.full_name=self:convert_to_full_name(name)
+    self.full_name=self:unit_full_name("player")
+    local _,realm=UnitFullName("player")
+    self.realm_name=realm
     
     self.db=LibStub("AceDB-3.0"):New("PurpsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
                                                                  --see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0

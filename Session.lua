@@ -70,7 +70,7 @@ function purps:generate_group_member_list()
     local list=self:get_units_list()
     for i=1,#list do 
         local unit=list[i]
-        local name=UnitName(unit)
+        local name=purps:unit_full_name(unit)
         local _,class=UnitClass(unit)
         if not name then break end
         a[#a+1]={self:convert_to_full_name(name),0,0,nil,nil,"",class=class}  --name,response_id,ilvl,item1,item2,note
@@ -106,7 +106,6 @@ function purps:name_index_in_session(name,session_index)
     return nil
 end
 
-
 function purps:apply_response_update(sender,response)
     if not response or not (type(response)=="table") or (not sender) then return end
     local item_index=response.item_index 
@@ -131,8 +130,15 @@ function purps:apply_response_update(sender,response)
     if sender==self.full_name then self.interface:check_items_status() end
 end
 
-
-
+local help_table_items={}
+function purps:get_equipped_items(session_index)
+    if (not session_index) or (not self.current_session[session_index]) then return end
+    local loc=self.current_session[session_index].item_info.itemEquipLoc
+    
+    local links=self:get_item_link_slot(loc)
+    if not links then return end 
+    return links
+end
 
 
 

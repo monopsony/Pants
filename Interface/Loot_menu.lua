@@ -92,7 +92,7 @@ do
 end
 
 
---create loot menu vote frame
+--create loot menu response frame
 do
     --interface.session_main_frame=ui:PanelWithTitle(UIParent,200,200,"MAIN FRAME")
     interface.session_vote_frame=ui:Panel(UIParent,200,200)
@@ -145,11 +145,22 @@ do
     
         local response=purps.interface:generate_response()
         if not response then return end
-        
+                
         purps:send_response_update(response)
         
     end)
     
+end
+
+local function show_tooltip(frame, show, itemLink)
+	if show then
+		GameTooltip:SetOwner(frame,"ANCHOR_RIGHT");
+		GameTooltip:SetHyperlink(itemLink)
+
+	else
+		GameTooltip:Hide();
+	end
+
 end
 
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
@@ -206,21 +217,77 @@ local table_column_default={
     {
         name="iLvl",
         sortable=false,
-        width=30,
+        width=40,
         align="LEFT",
         index=3,
-        format="text",
+        format=function(ilvl,response) --best way I found to do this
+                                       --the ilvl row updates the equipped item icon
+            
+            local eq=response.equipped
+            
+            if (not eq) or (not eq[1]) then 
+                response[4]=nil
+            else
+                local itemIcon=select(10,GetItemInfo(eq[1]))
+                response[4]=itemIcon
+            end
+            
+            if (not eq) or (not eq[2]) then 
+                response[5]=nil
+            else
+                local itemIcon=select(10,GetItemInfo(eq[2]))
+                response[5]=itemIcon
+            end
+            
+            return ("%.0f"):format(ilvl)
+        end
     }, 
     
-    --other
+    --equipped
     {
-        name="Other",
+        name="1",
         sortable=false,
-        width=30,
+        width=25,
         align="LEFT",
         index=4,
         format="icon",
-        
+        events={
+			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+				local cellData = rowData[columnData.index];
+                local eq=rowData.equipped
+                if (not eq) or (not eq[1]) then show_tooltip(cellFrame,false); return false end
+                
+				show_tooltip(cellFrame, true, eq[1]);
+				return false;
+			end,
+			OnLeave = function(rowFrame, cellFrame)
+				show_tooltip(cellFrame, false);
+				return false;
+			end
+        },
+    }, 
+    
+    {
+        name="2",
+        sortable=false,
+        width=25,
+        align="LEFT",
+        index=5,
+        format="icon",
+        events={
+			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+				local cellData = rowData[columnData.index];
+                local eq=rowData.equipped
+                if (not eq) or (not eq[2]) then show_tooltip(cellFrame,false); return false end
+                
+				show_tooltip(cellFrame, true, eq[2]);
+				return false;
+			end,
+			OnLeave = function(rowFrame, cellFrame)
+				show_tooltip(cellFrame, false);
+				return false;
+			end
+        },
     }, 
     
 }
