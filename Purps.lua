@@ -27,6 +27,7 @@ local defaults={
         session_paras={
             response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
             response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
+            disregard={text="Disregarded",color={.9,.6,0,1}},
         }, --end of session_paras
     },-- end of profile
 }--end of defaults

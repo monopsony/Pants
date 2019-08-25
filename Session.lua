@@ -73,7 +73,7 @@ function purps:generate_group_member_list()
         local name=purps:unit_full_name(unit)
         local _,class=UnitClass(unit)
         if not name then break end
-        a[#a+1]={self:convert_to_full_name(name),0,0,nil,nil,"",class=class}  --name,response_id,ilvl,item1,item2,note
+        a[#a+1]={self:convert_to_full_name(name),"",0,nil,nil,"",class=class,response_id=0}  --name,response_id,ilvl,item1,item2,note
     end
     return a
 end
@@ -112,10 +112,11 @@ function purps:apply_response_update(sender,response)
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return end 
     
     sender=self:convert_to_full_name(sender)
-    local sender_id=self:name_index_in_session(sender,item_index)
+    local sender_id=(response.row_index) or self:name_index_in_session(sender,item_index)
     if not sender_id then return end 
     
     response.item_index=nil
+    response.row_index=nil
     local current_response=self.current_session[item_index].responses[sender_id]
         
     for k,v in pairs(response) do 

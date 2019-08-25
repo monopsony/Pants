@@ -31,7 +31,6 @@ local registered_comms={
         local tbl=purps:decode_decompress_deserialize(data)
         if not tbl then return end
         purps:apply_response_update(sender,tbl)
-        
     end,
     
 }

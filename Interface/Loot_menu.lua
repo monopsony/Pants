@@ -160,18 +160,86 @@ local function show_tooltip(frame, show, itemLink)
 	else
 		GameTooltip:Hide();
 	end
-
 end
 
+local function show_tooltip_string(frame, show, str)
+	if show then
+		GameTooltip:SetOwner(frame,"ANCHOR_RIGHT");
+		GameTooltip:SetText(str)
+	else
+		GameTooltip:Hide();
+	end
+end
+
+
+local has_note,has_no_note="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
+local regarded_icon,disregarded_icon="Interface\\LFGFRAME\\BattlenetWorking0.PNG","Interface\\LFGFRAME\\BattlenetWorking4.PNG"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local table_column_default={
+
+    {
+        name="",
+        width=1,
+        align="LEFT",
+        index=0,
+        format=function(_,response)
+            --best way I found to do this
+            --updates whatever needs to be updates
+            --like the note icon/disregard icon/response/equipped items etc
+            
+            --equipped items
+            local eq=response.equipped
+            if (not eq) or (not eq[1]) then 
+                response[4]=nil
+            else
+                local itemIcon=select(10,GetItemInfo(eq[1]))
+                response[4]=itemIcon
+            end
+            if (not eq) or (not eq[2]) then 
+                response[5]=nil
+            else
+                local itemIcon=select(10,GetItemInfo(eq[2]))
+                response[5]=itemIcon
+            end
+            
+
+            --note
+            local note=response.note
+            if not note or (note=="") then 
+                response[6]=has_no_note
+            else
+                response[6]=has_note
+            end
+            
+            
+            --response
+            local s=""
+            if response.disregarded then 
+                s=purps.current_session_paras.disregard.text or "Disregarded"
+            else
+                s=purps.current_session_paras.response_names[response.response_id or ""] or "N/A"
+            end
+            response[2]=s
+            
+            --disregard/show
+            if response.disregarded then
+                response[7]=disregarded_icon
+            else
+                response[7]=regarded_icon
+            end
+            
+        end,
+        
+    },
+
+
     --Name
     {
         name="Name",
         width=105,
         align="LEFT",
         index=1,
-        format=function(name)
+        format=function(name) 
             return purps:remove_realm(name)
         end,
         
@@ -189,14 +257,15 @@ local table_column_default={
         width=175,
         align="LEFT",
         index=2,
-        format=function(response_id)
-            local s=purps.current_session_paras.response_names[response_id] or "N/A"
-            return s
-            --purps.current_session_paras
-        end,
+        format="text",
         color=function(_,_,tbl)
-            local response_id=tbl[2]
-            local r,g,b,a=unpack(purps.current_session_paras.response_colours[response_id] or {1,1,1,1})
+            local r,g,b,a=1,1,1,1
+            if tbl.disregarded then 
+                r,g,b,a=unpack(purps.current_session_paras.disregard.color)
+            else
+                local response_id=tbl.response_id
+                r,g,b,a=unpack(purps.current_session_paras.response_colours[response_id] or {1,1,1,1})
+            end
             return {r=r,g=g,b=b,a=a or 1}
         end,
         --compareSort=function(self,rowA,rowB,sortBy)
@@ -218,27 +287,9 @@ local table_column_default={
         name="iLvl",
         sortable=false,
         width=40,
-        align="LEFT",
+        align="CENTER",
         index=3,
-        format=function(ilvl,response) --best way I found to do this
-                                       --the ilvl row updates the equipped item icon
-            
-            local eq=response.equipped
-            
-            if (not eq) or (not eq[1]) then 
-                response[4]=nil
-            else
-                local itemIcon=select(10,GetItemInfo(eq[1]))
-                response[4]=itemIcon
-            end
-            
-            if (not eq) or (not eq[2]) then 
-                response[5]=nil
-            else
-                local itemIcon=select(10,GetItemInfo(eq[2]))
-                response[5]=itemIcon
-            end
-            
+        format=function(ilvl,response) 
             return ("%.0f"):format(ilvl)
         end
     }, 
@@ -247,8 +298,8 @@ local table_column_default={
     {
         name="1",
         sortable=false,
-        width=25,
-        align="LEFT",
+        width=32,
+        align="CENTER",
         index=4,
         format="icon",
         events={
@@ -271,8 +322,8 @@ local table_column_default={
     {
         name="2",
         sortable=false,
-        width=25,
-        align="LEFT",
+        width=32,
+        align="CENTER",
         index=5,
         format="icon",
         events={
@@ -295,31 +346,47 @@ local table_column_default={
     {
         name="Note",
         sortable=false,
-        width=25,
-        align="LEFT",
+        width=42,
+        align="CENTER",
         index=6,
         format="icon",
         events={
 			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
 				local cellData = rowData[columnData.index];
-                local eq=rowData.equipped
-                if (not eq) or (not eq[2]) then show_tooltip(cellFrame,false); return false end
+                local note=rowData.note
+                if (not note) or (note=="") then show_tooltip_string(cellFrame,false); return false end
                 
-				show_tooltip(cellFrame, true, eq[2]);
+				show_tooltip_string(cellFrame, true, note);
 				return false;
 			end,
 			OnLeave = function(rowFrame, cellFrame)
-				show_tooltip(cellFrame, false);
+				show_tooltip_string(cellFrame, false);
 				return false;
 			end
         },
     }, 
  
-
+    --note icon
+    {
+        name="Show",
+        sortable=false,
+        width=42,
+        align="CENTER",
+        index=7,
+        format="icon",
+        events={
+			OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                local item_index=purps.interface.currently_selected_item or nil
+                if not item_index then return end 
+                local regard=(not rowData.disregarded) or false
+                purps:send_response_update({item_index=item_index,row_index=rowIndex,disregarded=regard})
+            end,
+            }, 
+        },
  
 }
 
-local 
+
 local help_table1,wipe={},table.wipe
 function interface:generate_response()
     local item_index=self.currently_selected_item or nil
@@ -329,8 +396,9 @@ function interface:generate_response()
     local a,b=vote.response_dd:GetValue() or 0,vote.note_eb:GetText() or ""
     if a==0 then return nil end
     wipe(help_table1)
-    help_table1[2]=a --response id
-    help_table1[6]=b --note id
+    help_table1.response_id=a --response is [2] but it's updated by the Updater (see [0])
+    help_table1.note=b --note id is 6, but that's just the icon
+                        --the actual tooltip etc is done in [3] the ilvl thing (which also handles equipped items tooltips)
     help_table1.voted=true
     help_table1.item_index=item_index
     return help_table1
