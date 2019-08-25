@@ -61,7 +61,9 @@ do
     
         local item_index=purps.interface.currently_selected_item or nil
         if not item_index then return "N/A" end 
-                
+
+        if (not purps.current_session) or (not purps.current_session[item_index]) then return "N/A" end
+        
         local page=purps.current_session[item_index]
         local itemLink=page.item_info.itemLink    
         
@@ -177,6 +179,7 @@ local regarded_icon,disregarded_icon="Interface\\LFGFRAME\\BattlenetWorking0.PNG
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local table_column_default={
 
+    --Updater
     {
         name="",
         width=1,
@@ -232,7 +235,6 @@ local table_column_default={
         
     },
 
-
     --Name
     {
         name="Name",
@@ -268,18 +270,19 @@ local table_column_default={
             end
             return {r=r,g=g,b=b,a=a or 1}
         end,
-        --compareSort=function(self,rowA,rowB,sortBy)
-        --    local a = self:GetRow(rowA)[2]
-        --    local b = self:GetRow(rowB)[2]           
-        --    local column=self.columns[sortBy]
-        --    local direction=column.sort or column.defaultSort or 'asc'
-        --    if direction:lower() == 'asc' then 
-        --        return a>b
-        --   else
-        --        return a<b
-        --    end
-        --    
-        --end
+        compareSort=function(self,rowA,rowB,sortBy)
+            local x,y=self:GetRow(rowA),self:GetRow(rowB)
+            local a = ( x.disregarded and purps.current_session_paras.disregard_order )  or  (x.response_id) or 0
+            local b = ( y.disregarded and purps.current_session_paras.disregard_order )  or  (y.response_id) or 0         
+            local column=self.columns[sortBy]
+            local direction=column.sort or column.defaultSort or 'asc'
+            if direction:lower() == 'asc' then 
+                return a>b
+           else
+                return a<b
+            end
+            
+        end
     },   
     
     --ilvl
@@ -479,6 +482,29 @@ function interface:update_scroll_parameters(initialize)
     panel.expand_right_button:SetSize(size,size)
 end
 
+function interface:refill_vote_frame()
+    local item_index=self.currently_selected_item or nil
+    if not item_index then return end 
+
+    local vote=self.session_vote_frame
+    
+    local index=purps:name_index_in_session(purps.full_name,item_index)
+    
+    if purps.current_session and purps.current_session[item_index] then
+        local response=purps.current_session[item_index].responses[index]
+        if not response then return end
+        vote.response_dd:SetValue(response.response_id)
+        vote.note_eb:SetText(response.note or "")
+        
+    else
+        vote.response_dd:SetValue(0)
+        vote.note_eb:SetText("")
+    end
+    
+    vote.note_eb:ClearFocus()
+    
+end
+
 local help_table,wipe,pairs={},table.wipe,pairs
 function interface:update_response_dd()
     local para=purps.current_session_paras.response_names
@@ -647,42 +673,61 @@ function interface:apply_session_to_scroll()
     self:check_items_status()
 end
 
+local empty_table={}
 function interface:table_reload_item()
     local tbl=self.raid_table
     
-    local item_index=self.currently_selected_item or nil
-    if not item_index then return end 
     
-    if (not purps.current_session) or not (purps.current_session[item_index]) or not (purps.current_session[item_index].responses) then return end
+    local item_index=self.currently_selected_item or nil
+    
+    if item_index and (purps.current_session) and (purps.current_session[item_index]) and (purps.current_session[item_index].responses) then
+        tbl:SetData(purps.current_session[item_index].responses)
         
-    tbl:SetData(purps.current_session[item_index].responses)
+    else
+        tbl:SetData(empty_table)
+    end
+    
     
 end
 
 local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
 function interface:apply_selected_item()
     
-    local item_index=self.currently_selected_item or nil
-    if not item_index then return end 
-    --TBA add error message
+    if (purps.active_session) and (self.currently_selected_item) and (purps.current_session) then
     
-    local para=purps.para
-    local page=purps.current_session[item_index]
-    local item=page.item_info
-    
-    local frame=self.session_main_frame
-    
-    --apply icon 
-    frame.preview_icon.texture:SetTexture(item.itemIcon or para.scroll_item_default_icon)
+        local item_index=self.currently_selected_item or nil
+        if not item_index then return end 
+        --TBA add error message
+        
+        local para=purps.para
+        local page=purps.current_session[item_index]
+        local item=page.item_info
+        local frame=self.session_main_frame
+        
+        --apply icon 
+        frame.preview_icon.texture:SetTexture(item.itemIcon or para.scroll_item_default_icon)
 
-    --apply texts
-    frame.text_item_name:SetText(  ("|c%s%s|r"):format( (item.itemRarity and ITEM_QUALITY_COLORS[item.itemRarity].color:GenerateHexColor()) or "ffffffff", item.itemName)  )
-    frame.text_item_info:SetText(  ("%s, %s"):format(item.itemSubType or "",(item.itemEquipLoc and _G[item.itemEquipLoc] ) or "") )
-    frame.text_item_level:SetText(  ("ilvl: %d"):format(item.itemLevel or 69))
-    frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
+        --apply texts
+        frame.text_item_name:SetText(  ("|c%s%s|r"):format( (item.itemRarity and ITEM_QUALITY_COLORS[item.itemRarity].color:GenerateHexColor()) or "ffffffff", item.itemName)  )
+        frame.text_item_info:SetText(  ("%s, %s"):format(item.itemSubType or "",(item.itemEquipLoc and _G[item.itemEquipLoc] ) or "") )
+        frame.text_item_level:SetText(  ("ilvl: %d"):format(item.itemLevel or 69))
+        frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
+        
+    else
+    
+        local para=purps.para
+        local frame=self.session_main_frame
+        
+        self.current_selected_item=nil
+        frame.preview_icon.texture:SetTexture(nil)
+        frame.text_item_name:SetText("")
+        frame.text_item_info:SetText("")
+        frame.text_item_level:SetText("")
+        frame.text_item_extra:SetText("")
+    end
     
     self:table_reload_item()
-    
+    self:refill_vote_frame()
 end
 
 local function toggle_frame(frame)
@@ -792,6 +837,8 @@ function interface:check_selected_item()
     local items=purps.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
     
+    if not items then interface.currently_selected_item=nil; return end
+    
     for i=1,#items do 
         scroll_items[i]:check_selected()
     end
@@ -802,6 +849,7 @@ function interface:check_items_status()
     local items=purps.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
     
+    if not items then return end
     for i=1,#items do 
         scroll_items[i]:check_status()
     end

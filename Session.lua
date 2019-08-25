@@ -26,7 +26,7 @@ end
 local session_order,wipe={},table.wipe
 function purps:get_session_order()
     local session=self.current_session
-    if not session then return end
+    if not session then return {} end
     
     wipe(session_order)
     --TBA PROPER ORDER BASED ON PARAS
@@ -143,6 +143,13 @@ end
 
 
 
+function purps:apply_end_session()
+    print "ending session"
+    self.active_session=false
+    wipe(self.current_session)
+    purps.interface:apply_session_to_scroll()
+    purps.interface:apply_selected_item()
+end
 
 
 

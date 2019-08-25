@@ -33,6 +33,9 @@ local registered_comms={
         purps:apply_response_update(sender,tbl)
     end,
     
+    ["PurpsSEnd"]=function(data,_,sender)
+        purps:apply_end_session()
+    end,
 }
 
 function purps:send_raid_comm(prefix,data)
@@ -79,6 +82,11 @@ function purps:send_equipped_items(session_index)
     response.equipped=items
     self:send_response_update(response)
 end
+
+function purps:send_end_session()
+    self:send_raid_comm("PurpsSEnd",nil)
+end
+
 
 
 
