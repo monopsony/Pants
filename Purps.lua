@@ -51,6 +51,7 @@ function purps:OnInitialize()
 	self.interface:update_main_frame_parameters(true)
 	self.interface:update_vote_frame_parameters(true)
 	
+	self.interface:reset_items_status()
 end
 
 
@@ -66,7 +67,8 @@ local chat_commands={
 				
 				self:add_items_to_session(v)
 				if self.active_session then 
-					self.current_session[#self.current_session].responses=self:generate_group_member_list()
+					local item_info=self.current_session[#self.current_session].item_info
+					self.current_session[#self.current_session].responses=self:generate_group_member_list(item_info)
 					self:send_new_session_item(#self.current_session)
 				end
 			end
@@ -125,7 +127,7 @@ function purps:RefreshConfig()
 end
 
 function purps:OnEnable()
-	
+		
 end
 
 

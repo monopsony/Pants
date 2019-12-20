@@ -116,7 +116,7 @@ do
     sizer:RegisterForDrag("LeftButton")
     
     --response dd
-    frame.response_dd=ui:Dropdown(frame,100,25,{{text="N/A",value=1}},nil)
+    frame.response_dd=ui:Dropdown(frame,150,25,{{text="N/A",value=1}},nil)
     local dd=frame.response_dd
     dd:SetPlaceholder("SELECT")
     dd:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-10)
@@ -129,11 +129,11 @@ do
     
     --note edit box
     frame.note_eb=ui:MultiLineBox(frame,200,200,"")
-    local eb=frame.note_eb.panel
+    local eb=frame.note_eb
     eb:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-55)
     eb:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",10,55)
     
-    eb.scrollChild:SetMaxLetters(150)
+    eb.scrollChild:SetMaxLetters(200)
     
     
     --vote button
@@ -396,7 +396,7 @@ local table_column_default={
  
     --simc icon
     {
-        name="simc",
+        name="Simc",
         sortable=false,
         width=42,
         align="CENTER",
@@ -409,16 +409,19 @@ local table_column_default={
                 local name=rowData[1]
 
                 local simc_string=purps.simc_strings[name]
-                if not simc_string then return end 
+                if not simc_string then 
+                    purps:send_simc_request(name)
+                    return
+                end 
 
-                local header=purps.simc_bag_header
                 local iteminfo=purps.current_session[item_index].item_info
                 local extra=purps:generate_bag_item_from_info(iteminfo)
                 
-                local concat=('%s%s%s'):format(simc_string,header,extra)
+                local concat=('%s%s'):format(simc_string,extra)
 
-                if purps.simc_strings[name] then purps:show_simc_output(concat) end
-
+                if purps.simc_strings[name] then 
+                    purps:show_simc_output(concat) 
+                end
                 --show_simc_output
             end,
             }, 
@@ -529,7 +532,13 @@ function interface:refill_vote_frame()
     
     if purps.current_session and purps.current_session[item_index] then
         local response=purps.current_session[item_index].responses[index]
-        if not response then return end
+        if not response then
+            --youre not allowed to respond here
+            vote.blocker:Show()
+            return 
+        end
+        vote.blocker:Hide()
+
         vote.response_dd:SetValue(response.response_id)
         vote.note_eb:SetText(response.note or "")
         
@@ -603,6 +612,8 @@ local set_status={
     ["none"]=function(self)
         self.status="none"
         self.status_frame:Hide()
+        self.item_texture:SetDesaturated(false)
+        self:SetAlpha(1)
     end,
     
     ["vote_pending"]=function(self)
@@ -610,9 +621,17 @@ local set_status={
         self.status_frame:Show()
         self.status_frame:SetSize(self:GetWidth()*.7,self:GetHeight()*.7)
         self.status_frame.texture:SetTexture("Interface\\OPTIONSFRAME\\UI-OptionsFrame-NewFeatureIcon.PNG")
-        --self.status_frame.texture:SetTexture("Interface\\GossipFrame\\AvailableQuestIcon.PNG")
+        self.item_texture:SetDesaturated(false)
+        self:SetAlpha(1)
     end,
-    
+
+    ["not_in_list"]=function(self)
+        self.status="not_in_list"
+        self.status_frame:Hide()
+        self.item_texture:SetDesaturated(true)
+        self:SetAlpha(.7)
+    end,
+
     ["metatable"]={__index=function(table,key) return table["none"] end}
 }   
 setmetatable(set_status,set_status.metatable)
@@ -631,7 +650,7 @@ local function check_status(self)
     else
     
     end
-    set_status[status](self)
+    if status~=self.status then set_status[status](self) end
 end
 
 function interface:populate_scroll_child()
@@ -854,6 +873,22 @@ do
         purps.interface:update_vote_frame_parameters()
     end)  
 
+    --create vote blocker
+    vote.blocker=CreateFrame('Button',nil,vote)
+    bl=vote.blocker
+    bl:SetFrameLevel(vote:GetFrameLevel()+4)
+    bl:SetAllPoints()
+
+    bl.texture=bl:CreateTexture(nil,'OVERLAY')
+    bl.texture:SetAllPoints()
+    bl.texture:SetColorTexture(0,0,0,.4)
+
+    bl.text=bl:CreateFontString(nil,'OVERLAY')
+    bl.text:SetPoint('CENTER')
+    bl.text:SetFont("Fonts\\FRIZQT__.TTF",13)
+    bl.text:SetText('Not lootable')
+    bl:Show()
+
 end
 
 function interface:refresh_sort_raid_table()
@@ -885,7 +920,16 @@ function interface:check_items_status()
     
 end
 
+function interface:reset_items_status()
+    local items=purps.current_session
+    local scroll_items=interface.session_scroll_panel.scrollChild.items
 
+    if not items then return end
+    for i=1,#items do 
+        set_status['none'](scroll_items[i])
+    end
+    
+end
 
 
 

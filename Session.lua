@@ -67,16 +67,20 @@ function purps:raid_table_test_data()
     tbl:SetData(self.session_test_data)
 end
 
-function purps:generate_group_member_list()
+function purps:generate_group_member_list(item_info)
     if not IsInGroup() then return {} end
     local a={}
     local list=self:get_units_list()
+
+    itemSubType=item_info.itemSubType
     for i=1,#list do 
         local unit=list[i]
         local name=purps:unit_full_name(unit)
         local _,class=UnitClass(unit)
         if not name then break end
-        a[#a+1]={self:convert_to_full_name(name),"",0,nil,nil,"",class=class,response_id=0}  --name,response_id,ilvl,item1,item2,note
+        if not self.item_itemSubType_class_filters[itemSubType][class] then
+            a[#a+1]={self:convert_to_full_name(name),"",0,nil,nil,"",class=class,response_id=0}  --name,response_id,ilvl,item1,item2,note
+        end
     end
     return a
 end
@@ -90,7 +94,7 @@ function purps:start_session()
         
     for i=1,#tbl do 
         local t=tbl[i]
-        t.responses=self:generate_group_member_list()
+        t.responses=self:generate_group_member_list(t.item_info)
     end
     purps.active_session=true
     purps:send_current_session()

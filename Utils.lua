@@ -43,6 +43,203 @@ purps.item_loc_to_slot={
     INVTYPE_QUIVER={20,21,22,23},
 }
 
+purps.item_itemSubType_class_filters={
+    ['Cloth']={
+        ['WARRIOR']=true,
+        ['PALADIN']=true,
+        ['HUNTER']=true,
+        ['ROGUE']=true,
+        ['PRIEST']=false,
+        ['SHAMAN']=true,
+        ['MAGE']=false,
+        ['MONK']=true,
+        ['WARLOCK']=false,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=true,
+    },
+    
+    ['Leather']={
+        ['WARRIOR']=true,
+        ['PALADIN']=true,
+        ['HUNTER']=true,
+        ['ROGUE']=false,
+        ['PRIEST']=true,
+        ['SHAMAN']=true,
+        ['MAGE']=true,
+        ['MONK']=false,
+        ['WARLOCK']=true,
+        ['DRUID']=false,
+        ['DEMONHUNTER']=false,
+        ['DEATHKNIGHT']=true,
+    },
+    
+    ['Mail']={
+        ['WARRIOR']=true,
+        ['PALADIN']=true,
+        ['HUNTER']=false,
+        ['ROGUE']=true,
+        ['PRIEST']=true,
+        ['SHAMAN']=false,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=true,
+    },
+    
+    ['Plate']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=true,
+        ['ROGUE']=true,
+        ['PRIEST']=true,
+        ['SHAMAN']=true,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['One-Handed Swords']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=false,
+        ['ROGUE']=false,
+        ['PRIEST']=true,
+        ['SHAMAN']=true,
+        ['MAGE']=false,
+        ['MONK']=false,
+        ['WARLOCK']=false,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=false,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['One-Handed Maces']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=true,
+        ['ROGUE']=false,
+        ['PRIEST']=false,
+        ['SHAMAN']=false,
+        ['MAGE']=true,
+        ['MONK']=false,
+        ['WARLOCK']=true,
+        ['DRUID']=false,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=true,
+    },
+
+    ['Daggers']={
+        ['WARRIOR']=false,
+        ['PALADIN']=true,
+        ['HUNTER']=false,
+        ['ROGUE']=false,
+        ['PRIEST']=false,
+        ['SHAMAN']=false,
+        ['MAGE']=false,
+        ['MONK']=true,
+        ['WARLOCK']=false,
+        ['DRUID']=false,
+        ['DEMONHUNTER']=false,
+        ['DEATHKNIGHT']=true,    
+    },
+
+    ['One-Handed Axes']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=false,
+        ['ROGUE']=false,
+        ['PRIEST']=true,
+        ['SHAMAN']=false,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=false,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['Two-Handed Swords']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=true,
+        ['ROGUE']=false,
+        ['PRIEST']=true,
+        ['SHAMAN']=true,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['Two-Handed Axes']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=false,
+        ['ROGUE']=true,
+        ['PRIEST']=true,
+        ['SHAMAN']=true,
+        ['MAGE']=true,
+        ['MONK']=false,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['Two-Handed Maces']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=true,
+        ['ROGUE']=true,
+        ['PRIEST']=true,
+        ['SHAMAN']=false,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=false,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=false,
+    },
+
+    ['Shields']={
+        ['WARRIOR']=false,
+        ['PALADIN']=false,
+        ['HUNTER']=true,
+        ['ROGUE']=true,
+        ['PRIEST']=true,
+        ['SHAMAN']=false,
+        ['MAGE']=true,
+        ['MONK']=true,
+        ['WARLOCK']=true,
+        ['DRUID']=true,
+        ['DEMONHUNTER']=true,
+        ['DEATHKNIGHT']=true,
+    },
+
+    ['Miscellaneous']={
+
+    }
+}
+
+setmetatable(purps.item_itemSubType_class_filters,
+    {
+        __index=function(self,index)
+            if not index then return {} end
+            self[index]={}
+            purps:send_user_message( ('WARN: no itemSubType entry for %s'):format(index) )
+            return self[index]
+        end
+    }
+)
+
 function purps:send_user_message(key,...)
     local msg,s=(self.predefined_messages[key] or key) or "NO KEY GIVEN",""
     if type(msg)=="string" then

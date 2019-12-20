@@ -19,7 +19,9 @@ local registered_comms={
         purps.current_session=tbl
         purps.active_session=true
         purps.interface:apply_session_to_scroll()
-        
+        purps.interface:reset_items_status()
+        purps.interface:check_items_status()
+
         for i=1,#purps.current_session do
             local purps=purps
             afterDo(waiting_time,function() purps:send_equipped_items(i) end)
@@ -54,6 +56,14 @@ local registered_comms={
         purps:save_simc_string(sender,s)
         purps.interface:refresh_sort_raid_table()
     end,
+
+    ["PurpsSimcReq"]=function(data,_,sender)
+        local s=purps:decode_decompress(data)
+        local name=purps:convert_to_full_name(s)
+        if name~=purps.full_name then return end 
+        purps:send_simc_string()
+    end,
+
 }
 
 function purps:send_raid_comm(prefix,data)
@@ -70,6 +80,11 @@ for k,v in pairs(registered_comms) do
     purps:RegisterComm(k)
 end
 
+function purps:send_simc_request(name)
+    local s=self:compress_encode(name)
+    self:send_raid_comm("PurpsSimcReq",s)
+end
+
 function purps:send_session_paras()
     local para=self.para.session_paras
     local s=self:serialize_compress_encode(para)
@@ -82,7 +97,6 @@ function purps:send_current_session()
     self:send_session_paras()
     self:send_raid_comm("PurpsSCurr",s)
 end
-
 
 function purps:send_new_session_item(i)
     local session=self.current_session
