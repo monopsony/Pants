@@ -10,22 +10,28 @@ local defaults={
 		tertiary_stats_delimiter="//",
 		scroll_item_spacing=10,
 		scroll_frame_display_count=4,
+		
 		scroll_frame_width=65,
 		scroll_frame_height=400,
 		scroll_frame_pos={500,500},
+
 		main_frame_width=300,
+		main_frame_height=200,
+
 		raid_table_y_inset=175,
 		raid_table_x_inset=10,
 		raid_table_bottom_inset=40,
 		raid_table_row_height=30,
 		preview_icon_size={75,75},
-		voting_frame_width=200,
+
 		min_resize_height=100,
 		max_resize_height=1500,
+
 		vote_frame_height=200,
 		vote_frame_width=200,
+
 		session_paras={
-			response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
+			response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass"},
 			response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
 			disregard={text="Disregarded",color={.9,.6,0,1}},
 			disregard_order=1.5,

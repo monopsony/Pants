@@ -8,7 +8,6 @@ local function update_scroll_XY_paras()
     local x,y=panel:GetLeft(),panel:GetTop()
     purps.para.scroll_frame_pos[1]=x
     purps.para.scroll_frame_pos[2]=y
-            
 end
 
 local floor=floor
@@ -130,8 +129,8 @@ do
     --note edit box
     frame.note_eb=ui:MultiLineBox(frame,200,200,"")
     local eb=frame.note_eb
-    eb:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-55)
-    eb:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",10,55)
+    eb:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-40)
+    eb:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",10,40)
     
     eb.scrollChild:SetMaxLetters(200)
     
@@ -139,7 +138,7 @@ do
     --vote button
     frame.send_button=ui:Button(frame,75,25,"SEND")
     local sb=frame.send_button
-    sb:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-20,20)
+    sb:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-10,10)
     sb:SetScript("OnClick",function()
         local item_index=purps.interface.currently_selected_item or nil
         if not item_index then return end 
@@ -468,8 +467,7 @@ function interface:update_main_frame_parameters(initialize)
     local panel=interface.session_scroll_panel
     frame:ClearAllPoints()
     frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
-    frame:SetPoint("BOTTOMLEFT",panel,"BOTTOMRIGHT")
-    frame:SetWidth(para.main_frame_width)
+    frame:SetSize(para.main_frame_width,para.main_frame_height)
     
     frame:SetMinResize(100,para.min_resize_height)
     frame:SetMaxResize(2000,para.max_resize_height)
@@ -486,7 +484,8 @@ function interface:update_vote_frame_parameters(initialize)
     local panel=interface.session_scroll_panel
     frame:ClearAllPoints()
     frame:SetPoint("TOPRIGHT",panel,"TOPLEFT")
-    frame:SetSize(para.vote_frame_width,para.vote_frame_height)
+    frame:SetPoint("BOTTOMRIGHT",panel,"BOTTOMLEFT")
+    frame:SetSize(para.vote_frame_width,para.scroll_frame_height)
     
     frame:SetMinResize(100,para.min_resize_height)
     frame:SetMaxResize(2000,para.max_resize_height)
@@ -539,7 +538,8 @@ function interface:refill_vote_frame()
         end
         vote.blocker:Hide()
 
-        vote.response_dd:SetValue(response.response_id)
+        local response_id=(response.response_id==0 and #purps.current_session_paras.response_names) or response.response_id 
+        vote.response_dd:SetValue(response_id)
         vote.note_eb:SetText(response.note or "")
         
     else
@@ -799,7 +799,6 @@ do
     panel:SetResizable(true)
     panel:EnableMouse(true)
     frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
-    frame:SetPoint("BOTTOMLEFT",panel,"BOTTOMRIGHT")
    
     frame:SetScript("OnDragStart",function() 
         panel:StartMoving()
@@ -813,14 +812,11 @@ do
     local sizer=frame.sizer_frame
     sizer:SetFrameLevel(frame:GetFrameLevel()+10)
     sizer:SetScript("OnDragStart",function()
-        local x,y=unpack(purps.para.scroll_frame_pos)
-        x=x+purps.para.scroll_frame_width
-        frame:ClearAllPoints()
-        frame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
-        frame:SetSize(purps.para.main_frame_width,purps.para.scroll_frame_height)
-        panel:ClearAllPoints()
-        panel:SetPoint("TOPRIGHT",frame,"TOPLEFT")
-        panel:SetPoint("BOTTOMRIGHT",frame,"BOTTOMLEFT")
+        -- local x,y=unpack(purps.para.scroll_frame_pos)
+        -- x=x+purps.para.scroll_frame_width
+        -- frame:ClearAllPoints()
+        -- frame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
+        -- frame:SetSize(purps.para.main_frame_width,purps.para.scroll_frame_height)
         frame:StartSizing("BOTTOMRIGHT") 
     end)
     sizer:SetScript("OnDragStop",function() 
@@ -828,7 +824,7 @@ do
         panel:StopMovingOrSizing()
         local w,h=frame:GetWidth(),frame:GetHeight()
         purps.para.main_frame_width=w
-        purps.para.scroll_frame_height=h
+        purps.para.main_frame_height=h
         purps.interface:update_scroll_parameters()
         purps.interface:update_main_frame_parameters()
         
@@ -863,6 +859,13 @@ do
     local sizer=vote.sizer_frame
     sizer:SetFrameLevel(vote:GetFrameLevel()+10)
     sizer:SetScript("OnDragStart",function()
+        local x,y=vote:GetLeft(),vote:GetTop()
+        vote:ClearAllPoints()
+        vote:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
+        vote:SetSize(purps.para.vote_frame_width,purps.para.scroll_frame_height)
+        panel:ClearAllPoints()
+        panel:SetPoint("TOPLEFT",vote,"TOPRIGHT")
+        panel:SetPoint("BOTTOMLEFT",vote,"BOTTOMRIGHT")
         vote:StartSizing("BOTTOMLEFT") 
     end)
     sizer:SetScript("OnDragStop",function() 
@@ -870,6 +873,8 @@ do
         local w,h=vote:GetWidth(),vote:GetHeight()
         purps.para.vote_frame_width=w
         purps.para.vote_frame_height=h
+        purps.para.scroll_frame_height=h
+        purps.interface:update_scroll_parameters()
         purps.interface:update_vote_frame_parameters()
     end)  
 
@@ -906,7 +911,6 @@ function interface:check_selected_item()
     for i=1,#items do 
         scroll_items[i]:check_selected()
     end
-    
 end
 
 function interface:check_items_status()
@@ -917,7 +921,6 @@ function interface:check_items_status()
     for i=1,#items do 
         scroll_items[i]:check_status()
     end
-    
 end
 
 function interface:reset_items_status()
@@ -928,14 +931,7 @@ function interface:reset_items_status()
     for i=1,#items do 
         set_status['none'](scroll_items[i])
     end
-    
 end
-
-
-
-
-
-
 
 
 
