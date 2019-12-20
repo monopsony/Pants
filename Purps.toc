@@ -3,12 +3,14 @@
 ## Author: Mono
 ## DefaultState: disabled
 ## SavedVariables: PurpsAddonDB
+## OptionalDeps: Simulationcraft
 
 libs.xml
 Purps.lua
 Utils.lua
 Session.lua
 Comms.lua
+simc.lua
 
 Interface\Loot_menu.lua
 

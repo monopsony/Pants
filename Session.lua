@@ -11,14 +11,18 @@ purps.current_session_paras={
     response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={1,0,0,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
 }
 
-local session=purps.current_session
+
 function purps:add_items_to_session(msg)
+    local session=purps.current_session
     local n=#session+1
     session[n]={}
-    local page=session[n]
-    
+    local page=session[n]    
     page.item_info=self:itemlink_info(msg)
     
+    if self.active_session then 
+
+    end
+
     self.interface:apply_session_to_scroll()
     
 end
@@ -63,7 +67,6 @@ function purps:raid_table_test_data()
     tbl:SetData(self.session_test_data)
 end
 
-
 function purps:generate_group_member_list()
     if not IsInGroup() then return {} end
     local a={}
@@ -98,8 +101,6 @@ function purps:name_index_in_session(name,session_index)
     if (not self.current_session[session_index]) or (not self.current_session[session_index].responses) then return nil end
     local session=self.current_session[session_index].responses
     name=self:convert_to_full_name(name)
-    
-    
     for i=1,#session do
         if session[i][1]==name then return i end
     end
@@ -141,17 +142,12 @@ function purps:get_equipped_items(session_index)
     return links
 end
 
-
-
 function purps:apply_end_session()
-    print "ending session"
     self.active_session=false
     wipe(self.current_session)
     purps.interface:apply_session_to_scroll()
     purps.interface:apply_selected_item()
 end
-
-
 
 
 

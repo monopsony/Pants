@@ -27,6 +27,18 @@ local registered_comms={
         
     end,
     
+    ["PurpsSAdd"]=function(data,_,sender)
+        if not UnitIsUnit("player",sender) then 
+            local tbl=purps:decode_decompress_deserialize(data)
+            purps.current_session[#purps.current_session+1]=tbl
+        end
+        purps.interface:apply_session_to_scroll()
+        
+        local purps=purps
+        afterDo(waiting_time,function() purps:send_equipped_items(#purps.current_session) end)
+        
+    end,
+
     ["PurpsSResUpd"]=function(data,_,sender)
         local tbl=purps:decode_decompress_deserialize(data)
         if not tbl then return end
@@ -35,6 +47,12 @@ local registered_comms={
     
     ["PurpsSEnd"]=function(data,_,sender)
         purps:apply_end_session()
+    end,
+
+    ["PurpsSimc"]=function(data,_,sender)
+        local s=purps:decode_decompress(data)
+        purps:save_simc_string(sender,s)
+        purps.interface:refresh_sort_raid_table()
     end,
 }
 
@@ -65,6 +83,16 @@ function purps:send_current_session()
     self:send_raid_comm("PurpsSCurr",s)
 end
 
+
+function purps:send_new_session_item(i)
+    local session=self.current_session
+    if (not i) or (#session<i) then return end 
+    session['item_session_id']=i
+    local s=self:serialize_compress_encode(session[i])
+    self:send_raid_comm("PurpsSAdd",s)
+end
+
+
 function purps:send_response_update(response)
     if not response or not (type(response)=="table") then return end
     local s=self:serialize_compress_encode(response)
@@ -86,10 +114,6 @@ end
 function purps:send_end_session()
     self:send_raid_comm("PurpsSEnd",nil)
 end
-
-
-
-
 
 
 

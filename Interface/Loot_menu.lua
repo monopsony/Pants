@@ -26,7 +26,6 @@ local function raid_table_adapt_rows_to_height()
     
     tbl:SetDisplayRows(0,0)
     tbl:SetDisplayRows(n,rh)
-    
 end
 
 --create loot menu main frame
@@ -176,6 +175,7 @@ end
 
 local has_note,has_no_note="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
 local regarded_icon,disregarded_icon="Interface\\LFGFRAME\\BattlenetWorking0.PNG","Interface\\LFGFRAME\\BattlenetWorking4.PNG"
+local simc_filled,simc_empty="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local table_column_default={
 
@@ -191,7 +191,7 @@ local table_column_default={
             --like the note icon/disregard icon/response/equipped items etc
             
             --equipped items
-            local eq=response.equipped
+            local eq,name=response.equipped,response[1]
             if (not eq) or (not eq[1]) then 
                 response[4]=nil
             else
@@ -213,8 +213,15 @@ local table_column_default={
             else
                 response[6]=has_note
             end
-            
-            
+        
+            --simc
+            local simc=purps.simc_strings[name]
+            if (not simc) or (simc=="") then 
+                response[8]=simc_empty
+            else
+                response[8]=simc_filled
+            end
+
             --response
             local s=""
             if response.disregarded then 
@@ -369,7 +376,7 @@ local table_column_default={
         },
     }, 
  
-    --note icon
+    --disregard icon
     {
         name="Show",
         sortable=false,
@@ -387,6 +394,36 @@ local table_column_default={
             }, 
         },
  
+    --simc icon
+    {
+        name="simc",
+        sortable=false,
+        width=42,
+        align="CENTER",
+        index=8,
+        format="icon",
+        events={
+            OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                local item_index=purps.interface.currently_selected_item or nil
+                if not item_index then return end 
+                local name=rowData[1]
+
+                local simc_string=purps.simc_strings[name]
+                if not simc_string then return end 
+
+                local header=purps.simc_bag_header
+                local iteminfo=purps.current_session[item_index].item_info
+                local extra=purps:generate_bag_item_from_info(iteminfo)
+                
+                local concat=('%s%s%s'):format(simc_string,header,extra)
+
+                if purps.simc_strings[name] then purps:show_simc_output(concat) end
+
+                --show_simc_output
+            end,
+            }, 
+        },
+
 }
 
 
@@ -501,8 +538,7 @@ function interface:refill_vote_frame()
         vote.note_eb:SetText("")
     end
     
-    vote.note_eb:ClearFocus()
-    
+    vote.note_eb:ClearFocus()  
 end
 
 local help_table,wipe,pairs={},table.wipe,pairs
@@ -585,7 +621,7 @@ local function check_status(self)
     local index=self.session_index
     if not index then return end
     local session,status,player_index=purps.current_session[index],"none",purps:name_index_in_session(purps.full_name,index)
-    
+
     if (not session) or (not session.responses) then return end
         
     if (not player_index) or (not session.responses[player_index]) then
@@ -595,11 +631,7 @@ local function check_status(self)
     else
     
     end
-    
-    if status~=self.status then 
-        set_status[status](self)
-    end
-    
+    set_status[status](self)
 end
 
 function interface:populate_scroll_child()
@@ -650,7 +682,6 @@ function interface:populate_scroll_child()
         --sel.texture:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress.PNG")
         
     end
-    
 end
 
 function interface:apply_session_to_scroll()
@@ -686,8 +717,6 @@ function interface:table_reload_item()
     else
         tbl:SetData(empty_table)
     end
-    
-    
 end
 
 local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
@@ -848,7 +877,7 @@ end
 function interface:check_items_status()
     local items=purps.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
-    
+
     if not items then return end
     for i=1,#items do 
         scroll_items[i]:check_status()

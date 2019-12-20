@@ -54,8 +54,6 @@ function purps:send_user_message(key,...)
     end
     
     print(("%s: %s"):format(self.predefined_messages.name,s))
-    
-    
 end
 
 local GetItemInfo=GetItemInfo
@@ -147,12 +145,26 @@ function purps:serialize_compress_encode(tbl)
     return s3
 end
 
+function purps:compress_encode(s)
+    if (not s) or (not type(s)=="string") then return nil end
+    local s1=LibD:CompressDeflate(s)
+    local s2=LibD:EncodeForWoWAddonChannel(s1)
+    return s2
+end
+
 function purps:decode_decompress_deserialize(str)
     if (not str) or (not type(str)=="string") then return nil end
     local s1=LibD:DecodeForWoWAddonChannel(str)
     local s2=LibD:DecompressDeflate(s1)
     local _,s3=LibS:Deserialize(s2)
     return s3
+end
+
+function purps:decode_decompress(s)
+    if (not s) or (not type(s)=="string") then return nil end
+    local s1=LibD:DecodeForWoWAddonChannel(s)
+    local s2=LibD:DecompressDeflate(s1)
+    return s2
 end
 
 local sfind=string.find
@@ -197,6 +209,7 @@ local UnitFulLName=UnitFullName
 function purps:unit_full_name(unit)
     if not UnitExists(unit) then return end
     local name,realm=UnitFullName(unit)
+    if (not realm) or (realm=='') then realm=self.realm_name end
     return ("%s-%s"):format(name,realm)
 end
 
@@ -216,6 +229,4 @@ function purps:get_item_link_slot(slot)
         
     return links
 end
-
-
 
