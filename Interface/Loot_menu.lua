@@ -175,12 +175,12 @@ local function show_tooltip_string(frame, show, str)
 end
 
 local media="Interface\\AddOns\\Purps\\Media\\"
-local has_note,has_no_note="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG",media.."NOTE_EMPTY"
-local regarded_icon,disregarded_icon="Interface\\LFGFRAME\\BattlenetWorking0.PNG","Interface\\LFGFRAME\\BattlenetWorking4.PNG"
-local simc_filled,simc_empty="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
+local has_note,has_no_note=media.."NOTE_FILLED",media.."NOTE_EMPTY"
+local regarded_icon,disregarded_icon=media.."EYE_OPEN",media.."EYE_CLOSED"
+local simc_filled,simc_empty=media.."SIMC_ICON",media.."SIMC_ICON"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
-local yellow_color=ui.config.font.color.header
-local table_column_default={
+local yellow_color,grey_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1}
+purps.interface.table_column_settings={
 
     --Updater
     {
@@ -193,7 +193,6 @@ local table_column_default={
             --updates whatever needs to be updates
             --like the note icon/disregard icon/response/equipped items etc
             
-
             --equipped items
             local eq,name=response.equipped,response[1]
             if (not eq) or (not eq[1]) then 
@@ -214,16 +213,20 @@ local table_column_default={
             local note=response.note
             if not note or (note=="") then 
                 response[6]=has_no_note
+                purps.interface.table_column_settings[7].color=grey_color
             else
                 response[6]=has_note
+                purps.interface.table_column_settings[7].color=yellow_color
             end
         
             --simc
             local simc=purps.simc_strings[name]
             if (not simc) or (simc=="") then 
                 response[8]=simc_empty
+                purps.interface.table_column_settings[9].color=grey_color
             else
                 response[8]=simc_filled
+                purps.interface.table_column_settings[9].color=yellow_color
             end
 
             --response
@@ -238,8 +241,10 @@ local table_column_default={
             --disregard/show
             if response.disregarded then
                 response[7]=disregarded_icon
+                purps.interface.table_column_settings[8].color=yellow_color
             else
                 response[7]=regarded_icon
+                purps.interface.table_column_settings[8].color=grey_color
             end
             
 
@@ -435,7 +440,7 @@ local table_column_default={
         },
 
 }
-
+local table_column_default=purps.interface.table_column_settings
 
 local help_table1,wipe={},table.wipe
 function interface:generate_response()
