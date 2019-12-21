@@ -10,7 +10,7 @@ local defaults={
 		tertiary_stats_delimiter="//",
 		scroll_item_spacing=10,
 		scroll_frame_display_count=4,
-		
+
 		scroll_frame_width=65,
 		scroll_frame_height=400,
 		scroll_frame_pos={500,500},
@@ -137,8 +137,25 @@ function purps:OnEnable()
 end
 
 
+local event_frame=CreateFrame('Frame','PurpsGlobalEventFrame',UIParent)
+registered_events={'PLAYER_ENTERING_WORLD'}
+purps.active_session_found_requested=false
+for k,v in pairs(registered_events) do event_frame:RegisterEvent(v) end
+function event_frame:handle_event(event)
+	if event=='PLAYER_ENTERING_WORLD' then 
 
+		purps.full_name=purps:unit_full_name("player")
+		local _,realm=UnitFullName("player")
+		purps.realm_name=realm
 
+		--gotta throttle it by 1 frame when logging in
+		--I assume for people to load your name (nil otherwise)
+		local purps=purps
+		C_Timer.After(0,function() purps:send_active_session_request() end)
+	end
+
+end
+event_frame:SetScript('OnEvent',event_frame.handle_event)
 
 
 

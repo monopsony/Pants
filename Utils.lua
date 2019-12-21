@@ -407,6 +407,10 @@ function purps:unit_full_name(unit)
     if not UnitExists(unit) then return end
     local name,realm=UnitFullName(unit)
     if (not realm) or (realm=='') then realm=self.realm_name end
+    if (not realm) then 
+        local _,realm=UnitFullName("player")
+        self.realm_name=realm
+    end
     return ("%s-%s"):format(name,realm)
 end
 

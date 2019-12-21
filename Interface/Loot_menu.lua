@@ -111,7 +111,7 @@ do
     sizer:SetPoint("BOTTOMLEFT")
     
     frame:SetResizable(true)
-    sizer:EnableMouse(true)
+    sizer:EnableMouse(true) 
     sizer:RegisterForDrag("LeftButton")
     
     --response dd
@@ -129,6 +129,7 @@ do
     --note edit box
     frame.note_eb=ui:MultiLineBox(frame,200,200,"")
     local eb=frame.note_eb
+    eb.editBox.stdUi=dd.stdUi --bandaiding what I think is a bug in the new stdui update
     eb:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-40)
     eb:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",10,40)
     
@@ -145,7 +146,9 @@ do
     
         local response=purps.interface:generate_response()
         if not response then return end
-                
+        
+        frame.note_eb:ClearFocus()
+
         purps:send_response_update(response)
         
     end)
@@ -171,11 +174,12 @@ local function show_tooltip_string(frame, show, str)
 	end
 end
 
-
-local has_note,has_no_note="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
+local media="Interface\\AddOns\\Purps\\Media\\"
+local has_note,has_no_note="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG",media.."NOTE_EMPTY"
 local regarded_icon,disregarded_icon="Interface\\LFGFRAME\\BattlenetWorking0.PNG","Interface\\LFGFRAME\\BattlenetWorking4.PNG"
 local simc_filled,simc_empty="Interface\\Buttons\\UI-GuildButton-PublicNote-Up.PNG","Interface\\Buttons\\UI-GuildButton-PublicNote-Disabled.PNG"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
+local yellow_color=ui.config.font.color.header
 local table_column_default={
 
     --Updater
@@ -189,6 +193,7 @@ local table_column_default={
             --updates whatever needs to be updates
             --like the note icon/disregard icon/response/equipped items etc
             
+
             --equipped items
             local eq,name=response.equipped,response[1]
             if (not eq) or (not eq[1]) then 
@@ -237,6 +242,8 @@ local table_column_default={
                 response[7]=regarded_icon
             end
             
+
+
         end,
         
     },
@@ -359,6 +366,7 @@ local table_column_default={
         align="CENTER",
         index=6,
         format="icon",
+        color=yellow_color,
         events={
 			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
 				local cellData = rowData[columnData.index];
@@ -650,6 +658,7 @@ local function check_status(self)
     else
     
     end
+
     if status~=self.status then set_status[status](self) end
 end
 

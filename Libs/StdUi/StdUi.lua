@@ -86,7 +86,7 @@ StdUi.SetHighlightBorder = function(self)
 	if self.isDisabled then
 		return
 	end
-
+	
 	local hc = self.stdUi.config.highlight.color;
 	if not self.origBackdropBorderColor then
 		self.origBackdropBorderColor = {self:GetBackdropBorderColor()};
