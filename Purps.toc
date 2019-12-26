@@ -1,8 +1,8 @@
 ## Interface: 70100
-## Title: Purps
+## Title: Pants
 ## Author: Mono
 ## DefaultState: disabled
-## SavedVariables: PurpsAddonDB
+## SavedVariables: PantsAddonDB
 ## OptionalDeps: Simulationcraft
 
 libs.xml

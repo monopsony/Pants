@@ -1,23 +1,23 @@
-local purps=PurpsAddon
+local pants=PantsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
 local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
-purps.colors={
+pants.colors={
     ["epic"]={0.64,0.21,0.93},
     ["epic_hex"]="136207",
 }
 
-purps.predefined_messages={
-    ["name"]="|cffa335eePurps|r",
-    ["add_items_none_found"]="No items were found. Type '/purps add' followed by shift-clicking relevant items to add them to the session.",
-    ["help_message"]=function() return ("This is the %s help message,"):format(purps.predefined_messages.name) end,
+pants.predefined_messages={
+    ["name"]="|cffa335eepants|r",
+    ["add_items_none_found"]="No items were found. Type '/pants add' followed by shift-clicking relevant items to add them to the session.",
+    ["help_message"]=function() return ("This is the %s help message,"):format(pants.predefined_messages.name) end,
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
     ['generic']=function(a) return tostring(a) end,
 }
 
-purps.item_loc_to_slot={
+pants.item_loc_to_slot={
     INVTYPE_AMMO={0},
     INVTYPE_HEAD={1},
     INVTYPE_NECK={2},
@@ -46,7 +46,7 @@ purps.item_loc_to_slot={
     INVTYPE_QUIVER={20,21,22,23},
 }
 
-purps.item_itemSubType_class_filters={
+pants.item_itemSubType_class_filters={
     ['Cloth']={
         ['WARRIOR']=true,
         ['PALADIN']=true,
@@ -232,18 +232,18 @@ purps.item_itemSubType_class_filters={
     }
 }
 
-setmetatable(purps.item_itemSubType_class_filters,
+setmetatable(pants.item_itemSubType_class_filters,
     {
         __index=function(self,index)
             if not index then return {} end
             self[index]={}
-            purps:send_user_message( ('WARN: no itemSubType entry for %s'):format(index) )
+            pants:send_user_message( ('WARN: no itemSubType entry for %s'):format(index) )
             return self[index]
         end
     }
 )
 
-function purps:send_user_message(key,...)
+function pants:send_user_message(key,...)
     local msg,s=(self.predefined_messages[key] or key) or "NO KEY GIVEN",""
     if type(msg)=="string" then
         s=msg
@@ -257,7 +257,7 @@ function purps:send_user_message(key,...)
 end
 
 local GetItemInfo=GetItemInfo
-function purps:itemlink_info(ilink)
+function pants:itemlink_info(ilink)
     local itemName,itemLink,itemRarity,itemLevel,itemMinLevel,itemType,itemSubType,_,itemEquipLoc,itemIcon,_,itemClassID,itemSubClassID=GetItemInfo(ilink)
     
     return {
@@ -272,13 +272,13 @@ function purps:itemlink_info(ilink)
         itemIcon=itemIcon,
         itemClassID=itemClassID,
         itemSubClassID=itemSubClassID,
-        itemTertiary=purps:get_tertiary_stats(itemLink),
+        itemTertiary=pants:get_tertiary_stats(itemLink),
         }
 end
 
 local help_table1={}
 local GetItemStats=GetItemStats
-function purps:get_tertiary_stats(itemLink)
+function pants:get_tertiary_stats(itemLink)
     --mostly borrowed from RCLootCouncil
     --https://www.curseforge.com/wow/addons/rclootcouncil
 	local delimiter=self.para.tertiary_stats_delimiter or "/"
@@ -314,19 +314,19 @@ end
 --/script DEFAULT_CHAT_FRAME:AddMessage("\124cffff8000\124Hitem:77949::::::::120:::::\124h[Golad, Twilight of Aspects]\124h\124r");
 --/script DEFAULT_CHAT_FRAME:AddMessage("\124cff0070dd\124Hitem:158030::::::::120::::2:42:4803:\124h[Bleakweald Vambraces]\124h\124r");
 local sgsub=string.gsub
-function purps:separate_itemlinks(msg)
+function pants:separate_itemlinks(msg)
     local s=sgsub(msg,"]|h|r","]|h|r ")
     return sgsub(s,"|c%x+|Hitem"," %0")
 end
 
 local sfind=string.find
-function purps:is_itemlink(msg)
+function pants:is_itemlink(msg)
     if not (type(msg)=="string") then return false end
     return sfind(msg,"|Hitem")
 end
 
 
-function purps:RGBToHex(r, g, b)
+function pants:RGBToHex(r, g, b)
 	r = r <= 1 and r >= 0 and r or 0
 	g = g <= 1 and g >= 0 and g or 0
 	b = b <= 1 and b >= 0 and b or 0
@@ -337,7 +337,7 @@ end
 local LibS =LibStub:GetLibrary("AceSerializer-3.0")
 local LibD=LibStub:GetLibrary("LibDeflate")
 
-function purps:serialize_compress_encode(tbl)
+function pants:serialize_compress_encode(tbl)
     if (not tbl) or (not type(tbl)=="table") then return nil end
     local s1=LibS:Serialize(tbl)
     local s2=LibD:CompressDeflate(s1)
@@ -345,14 +345,14 @@ function purps:serialize_compress_encode(tbl)
     return s3
 end
 
-function purps:compress_encode(s)
+function pants:compress_encode(s)
     if (not s) or (not type(s)=="string") then return nil end
     local s1=LibD:CompressDeflate(s)
     local s2=LibD:EncodeForWoWAddonChannel(s1)
     return s2
 end
 
-function purps:decode_decompress_deserialize(str)
+function pants:decode_decompress_deserialize(str)
     if (not str) or (not type(str)=="string") then return nil end
     local s1=LibD:DecodeForWoWAddonChannel(str)
     local s2=LibD:DecompressDeflate(s1)
@@ -360,7 +360,7 @@ function purps:decode_decompress_deserialize(str)
     return s3
 end
 
-function purps:decode_decompress(s)
+function pants:decode_decompress(s)
     if (not s) or (not type(s)=="string") then return nil end
     local s1=LibD:DecodeForWoWAddonChannel(s)
     local s2=LibD:DecompressDeflate(s1)
@@ -368,7 +368,7 @@ function purps:decode_decompress(s)
 end
 
 local sfind=string.find
-function purps:convert_to_full_name(s)
+function pants:convert_to_full_name(s)
     if (not s) or not (type(s)=="string") then return s end
     local realm=self.realm_name or ""
     if not sfind(s,"-") then s=("%s-%s"):format(s,realm) end
@@ -376,12 +376,12 @@ function purps:convert_to_full_name(s)
 end
 
 local strsub=string.sub
-function purps:remove_realm(s)
+function pants:remove_realm(s)
     if (not s) or not (type(s)=="string") then return s end
     return strsub(s,1,(s:find("-") or 0)-1)
 end
 
-function purps:table_deep_copy(orig)
+function pants:table_deep_copy(orig)
     local orig_type = type(orig)
     local copy
     if orig_type == 'table' then
@@ -400,13 +400,13 @@ local raid_units={}
 for i=1,40 do raid_units[i]="raid"..tostring(i) end
 local party_units={"player","party1","party2","party3","party4"}
 local player_list={"player"}
-function purps:get_units_list()
+function pants:get_units_list()
     if not IsInGroup() then return player_list end
     return (IsInRaid() and raid_units) or party_units
 end
 
 local UnitFulLName=UnitFullName
-function purps:unit_full_name(unit)
+function pants:unit_full_name(unit)
     if not UnitExists(unit) then return end
     local name,realm=UnitFullName(unit)
     if (not realm) or (realm=='') then realm=self.realm_name end
@@ -418,7 +418,7 @@ function purps:unit_full_name(unit)
 end
 
 local ipairs=ipairs
-function purps:get_item_link_slot(slot)
+function pants:get_item_link_slot(slot)
     if not slot then return end
     local id=((type(slot)=="number") and {slot}) or ((type(slot)=="string") and self.item_loc_to_slot[slot]) or nil
     if not id then return end

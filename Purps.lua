@@ -1,5 +1,5 @@
-PurpsAddon=LibStub("AceAddon-3.0"):NewAddon("PurpsAddon","AceConsole-3.0","AceComm-3.0","AceEvent-3.0","AceSerializer-3.0")
-local purps=PurpsAddon
+PantsAddon=LibStub("AceAddon-3.0"):NewAddon("PantsAddon","AceConsole-3.0","AceComm-3.0","AceEvent-3.0","AceSerializer-3.0")
+local pants=PantsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
 local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
@@ -54,12 +54,12 @@ local defaults={
 	},-- end of profile
 }--end of defaults
 
-function purps:OnInitialize()
+function pants:OnInitialize()
 	self.full_name=self:unit_full_name("player")
 	local _,realm=UnitFullName("player")
 	self.realm_name=realm
 	
-	self.db=LibStub("AceDB-3.0"):New("PurpsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
+	self.db=LibStub("AceDB-3.0"):New("PantsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
 																 --see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0
 	self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
@@ -79,10 +79,10 @@ end
 local chat_commands={
 	["add"]=function(self,msg)
 	
-		if (self.active_session) and (not self.currently_in_council) then purps:send_user_message('not_in_council','add items to sessions'); return end
+		if (self.active_session) and (not self.currently_in_council) then pants:send_user_message('not_in_council','add items to sessions'); return end
 
-		if not purps:is_itemlink(msg) then purps:send_user_message("add_items_none_found") end
-		local msg=purps:separate_itemlinks(msg)
+		if not pants:is_itemlink(msg) then pants:send_user_message("add_items_none_found") end
+		local msg=pants:separate_itemlinks(msg)
 		local args={self:GetArgs(msg,10,1)}
    
 		for i,v in ipairs(args) do
@@ -101,16 +101,16 @@ local chat_commands={
 	end,
 
 	["help"]=function(...)
-		purps:send_user_message("help_message")
+		pants:send_user_message("help_message")
 		
 	end,
 	
 	["test_table"]=function(...)
-		PurpsAddon:raid_table_test_data()
+		PantsAddon:raid_table_test_data()
 	end,
 	
 	["raid_ping"]=function()     
-		purps:send_raid_comm("PurpsPing")
+		pants:send_raid_comm("pantsPing")
 	end,
 	
 	["send_session_paras"]=function(self)
@@ -118,7 +118,7 @@ local chat_commands={
 	end,
 	
 	["reset_profile"]=function()
-		purps.db:ResetProfile()
+		pants.db:ResetProfile()
 	end,
 	
 	["send_current_session"]=function(self)
@@ -134,7 +134,7 @@ local chat_commands={
 	end,
 	
 	['toggle']=function(self)
-		local f=PurpsAddon.interface.session_scroll_panel
+		local f=PantsAddon.interface.session_scroll_panel
 		if f:IsShown() then f:Hide() else f:Show() end
 	end,
 
@@ -152,7 +152,7 @@ local chat_commands={
 				s=('%s%s  %s  %s\n'):format(s,k,v,status)
 			end
 		end
-		purps:send_user_message('generic',s)
+		pants:send_user_message('generic',s)
 	end,
 
 	["metatable"]={__index=function(self,key) return self["help"] end},
@@ -160,40 +160,40 @@ local chat_commands={
 setmetatable(chat_commands,chat_commands.metatable)
 
 
-function purps:chat_command_handler(msg)
+function pants:chat_command_handler(msg)
 	local key=self:GetArgs(msg,1)
 	if (not key) or (key=='metatable') then chat_commands["help"]() 
 	else chat_commands[key](self,msg) end
 end
-purps:RegisterChatCommand("purps","chat_command_handler")
+pants:RegisterChatCommand("pants","chat_command_handler")
 
-function purps:RefreshConfig()
+function pants:RefreshConfig()
 	ReloadUI()
 end
 
-function purps:OnEnable()
+function pants:OnEnable()
 		
 end
 
 
-local event_frame=CreateFrame('Frame','PurpsGlobalEventFrame',UIParent)
+local event_frame=CreateFrame('Frame','PantsGlobalEventFrame',UIParent)
 registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}
-purps.active_session_found_requested=false
+pants.active_session_found_requested=false
 for k,v in pairs(registered_events) do event_frame:RegisterEvent(v) end
 function event_frame:handle_event(event)
 	if (event=='PLAYER_ENTERING_WORLD') or (event=='GROUP_JOINED') then 
 
-		purps.full_name=purps:unit_full_name("player")
+		pants.full_name=pants:unit_full_name("player")
 		local _,realm=UnitFullName("player")
-		purps.realm_name=realm
+		pants.realm_name=realm
 
 		--gotta throttle it by 1 frame when logging in
 		--I assume for people to load your name (nil otherwise)
-		local purps=purps
-		C_Timer.After(0,function() purps:send_active_session_request() end)
+		local pants=pants
+		C_Timer.After(0,function() pants:send_active_session_request() end)
 	
 	elseif event=='PARTY_LEADER_CHANGED' then
-		purps:send_rl_paras()
+		pants:send_rl_paras()
 	end
 
 end

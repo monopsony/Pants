@@ -1,19 +1,19 @@
-local purps=PurpsAddon
+local pants=PantsAddon
 local unpack,ipairs,pairs=unpack,ipairs,pairs
 
-purps.current_session={}
+pants.current_session={}
 
 --default paras
 --those will be overwritten by whoever the leader is
 --information will be sent as session is started
-purps.current_session_paras={
+pants.current_session_paras={
     response_names={[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
     response_colours={[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={1,0,0,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
 }
 
 
-function purps:add_items_to_session(msg)
-    local session=purps.current_session
+function pants:add_items_to_session(msg)
+    local session=pants.current_session
     local n=#session+1
     session[n]={}
     local page=session[n]    
@@ -28,7 +28,7 @@ function purps:add_items_to_session(msg)
 end
 
 local session_order,wipe={},table.wipe
-function purps:get_session_order()
+function pants:get_session_order()
     local session=self.current_session
     if not session then return {} end
     
@@ -42,7 +42,7 @@ function purps:get_session_order()
 end
 
 
-purps.session_test_data={
+pants.session_test_data={
     {"Bob",1,320,nil},
     {"Patrick",2,320,nil},
     {"John",1,345,nil},
@@ -61,12 +61,12 @@ purps.session_test_data={
     {"Mario",2,690,nil},
 }
 
-function purps:raid_table_test_data()
-    local tbl=purps.interface.raid_table
+function pants:raid_table_test_data()
+    local tbl=pants.interface.raid_table
     tbl:SetData(self.session_test_data)
 end
 
-function purps:generate_group_member_list(item_info)
+function pants:generate_group_member_list(item_info)
     if not IsInGroup() then return {} end
     local a={}
     local list=self:get_units_list()
@@ -74,7 +74,7 @@ function purps:generate_group_member_list(item_info)
     itemSubType=item_info.itemSubType
     for i=1,#list do 
         local unit=list[i]
-        local name=purps:unit_full_name(unit)
+        local name=pants:unit_full_name(unit)
         local _,class=UnitClass(unit)
         if not name then break end
         if not self.item_itemSubType_class_filters[itemSubType][class] then
@@ -84,8 +84,8 @@ function purps:generate_group_member_list(item_info)
     return a
 end
 
-function purps:start_session()
-    if not self.currently_in_council then purps:send_user_message('not_in_council','start sessions'); return end
+function pants:start_session()
+    if not self.currently_in_council then pants:send_user_message('not_in_council','start sessions'); return end
     local tbl=self.current_session
     if (not tbl) or (#tbl==0) then 
         self:send_user_message("add_items_none_found")
@@ -96,11 +96,11 @@ function purps:start_session()
         local t=tbl[i]
         t.responses=self:generate_group_member_list(t.item_info)
     end
-    purps.active_session=true
-    purps:send_current_session()
+    pants.active_session=true
+    pants:send_current_session()
 end
 
-function purps:name_index_in_session(name,session_index)
+function pants:name_index_in_session(name,session_index)
     if (not name) or (not session_index) then return nil end
     if (not self.current_session[session_index]) or (not self.current_session[session_index].responses) then return nil end
     local session=self.current_session[session_index].responses
@@ -111,7 +111,7 @@ function purps:name_index_in_session(name,session_index)
     return nil
 end
 
-function purps:apply_response_update(sender,response)
+function pants:apply_response_update(sender,response)
     if (not response) or not (type(response)=="table") or (not sender) then return end
 
     -- if not sender then 
@@ -144,7 +144,7 @@ function purps:apply_response_update(sender,response)
 end
 
 local help_table_items={}
-function purps:get_equipped_items(session_index)
+function pants:get_equipped_items(session_index)
     if (not session_index) or (not self.current_session[session_index]) then return end
     local loc=self.current_session[session_index].item_info.itemEquipLoc
     
@@ -153,30 +153,30 @@ function purps:get_equipped_items(session_index)
     return links
 end
 
-function purps:apply_end_session()
+function pants:apply_end_session()
     self.active_session=false
     wipe(self.current_session)
-    purps.interface:apply_session_to_scroll()
-    purps.interface:apply_selected_item()
+    pants.interface:apply_session_to_scroll()
+    pants.interface:apply_selected_item()
 end
 
-function purps:apply_rl_paras()
+function pants:apply_rl_paras()
     local para=self.current_rl_paras
     if not para then return end 
     local in_council=false
 
     for k,v in pairs(para.council) do
-        if v==purps.full_name then in_council=true; break end
+        if v==pants.full_name then in_council=true; break end
     end
 
-    purps.currently_in_council=in_council
+    pants.currently_in_council=in_council
 end
 
-function purps:apply_item_assignment(data)
+function pants:apply_item_assignment(data)
     if (not data) or (not data.name) or (not data.item_index) then return end 
     local item_index,name=data.item_index,data.name
     if (not item_index) or (not name) or (not self.current_session) or (not self.current_session[item_index]) then return end 
-    local index=purps:name_index_in_session(name,item_index)
+    local index=pants:name_index_in_session(name,item_index)
     if not index then return end
 
     for k,v in pairs(self.current_session[item_index].responses) do 
@@ -191,7 +191,7 @@ function purps:apply_item_assignment(data)
     self.interface:check_items_status()
 end
 
-function purps:item_assigned_player(item_index)
+function pants:item_assigned_player(item_index)
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return false end 
     for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1] end end
     return false

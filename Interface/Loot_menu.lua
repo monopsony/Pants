@@ -1,20 +1,20 @@
-local purps=PurpsAddon
-purps.interface={}
-local interface=purps.interface
+local pants=PantsAddon
+pants.interface={}
+local interface=pants.interface
 local ui=LibStub('StdUi')
 
 local function update_scroll_XY_paras()
-    local panel=purps.interface.session_scroll_panel
+    local panel=pants.interface.session_scroll_panel
     local x,y=panel:GetLeft(),panel:GetTop()
-    purps.para.scroll_frame_pos[1]=x
-    purps.para.scroll_frame_pos[2]=y
+    pants.para.scroll_frame_pos[1]=x
+    pants.para.scroll_frame_pos[2]=y
 end
 
 local floor=floor
 local function raid_table_adapt_rows_to_height()
     local frame=interface.session_main_frame
     local tbl=frame.raid_table
-    local para=purps.para
+    local para=pants.para
     
     local h=tbl:GetHeight()
     
@@ -57,18 +57,18 @@ do
     
     local function set_icon_tooltip(self)
     
-        local item_index=purps.interface.currently_selected_item or nil
+        local item_index=pants.interface.currently_selected_item or nil
         if not item_index then return "N/A" end 
 
-        if (not purps.current_session) or (not purps.current_session[item_index]) then return "N/A" end
+        if (not pants.current_session) or (not pants.current_session[item_index]) then return "N/A" end
         
-        local page=purps.current_session[item_index]
+        local page=pants.current_session[item_index]
         local itemLink=page.item_info.itemLink    
         
         self:SetHyperlink(itemLink)
     end
     
-    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"PurpsAddon_main_frame_icon_tooltip","TOPRIGHT",true)
+    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"PantsAddon_main_frame_icon_tooltip","TOPRIGHT",true)
 
     
     icon.texture=ui:Texture(icon,75,75)
@@ -141,15 +141,15 @@ do
     local sb=frame.send_button
     sb:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-10,10)
     sb:SetScript("OnClick",function()
-        local item_index=purps.interface.currently_selected_item or nil
+        local item_index=pants.interface.currently_selected_item or nil
         if not item_index then return end 
     
-        local response=purps.interface:generate_response()
+        local response=pants.interface:generate_response()
         if not response then return end
         
         frame.note_eb:ClearFocus()
 
-        purps:send_response_update(response)
+        pants:send_response_update(response)
         
     end)
     
@@ -180,7 +180,7 @@ local regarded_icon,disregarded_icon=media.."EYE_OPEN",media.."EYE_CLOSED"
 local simc_filled,simc_empty=media.."SIMC_ICON",media.."SIMC_ICON"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local yellow_color,grey_color,white_color,red_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1},{r=1,g=1,b=1,a=1},{r=1,g=.2,b=.2,a=1}
-purps.interface.table_column_settings={
+pants.interface.table_column_settings={
 
     --Updater
     {
@@ -213,54 +213,54 @@ purps.interface.table_column_settings={
             local note=response.note
             if not note or (note=="") then 
                 response[6]=has_no_note
-                purps.interface.table_column_settings[7].color=grey_color
+                pants.interface.table_column_settings[7].color=grey_color
             else
                 response[6]=has_note
-                purps.interface.table_column_settings[7].color=yellow_color
+                pants.interface.table_column_settings[7].color=yellow_color
             end
         
             --simc
-            local simc=purps.simc_strings[name]
+            local simc=pants.simc_strings[name]
             if (not simc) or (simc=="") then 
                 response[8]=simc_empty
-                purps.interface.table_column_settings[9].color=grey_color
+                pants.interface.table_column_settings[9].color=grey_color
             elseif (simc=="pending") then
                 response[8]=simc_filled
-                purps.interface.table_column_settings[9].color=white_color
+                pants.interface.table_column_settings[9].color=white_color
             elseif (simc=="failed") then
                 response[8]=simc_filled
-                purps.interface.table_column_settings[9].color=red_color
+                pants.interface.table_column_settings[9].color=red_color
             else
                 response[8]=simc_filled
-                purps.interface.table_column_settings[9].color=yellow_color
+                pants.interface.table_column_settings[9].color=yellow_color
             end
 
             --assign
             local win=response.win
             if (not win)  then 
                 response[9]=simc_filled
-                purps.interface.table_column_settings[10].color=grey_color
+                pants.interface.table_column_settings[10].color=grey_color
             else
                 response[9]=simc_filled
-                purps.interface.table_column_settings[10].color=yellow_color
+                pants.interface.table_column_settings[10].color=yellow_color
             end
 
             --response
             local s=""
             if response.disregarded then 
-                s=purps.current_session_paras.disregard.text or "Disregarded"
+                s=pants.current_session_paras.disregard.text or "Disregarded"
             else
-                s=purps.current_session_paras.response_names[response.response_id or ""] or "N/A"
+                s=pants.current_session_paras.response_names[response.response_id or ""] or "N/A"
             end
             response[2]=s
             
             --disregard/show
             if response.disregarded then
                 response[7]=disregarded_icon
-                purps.interface.table_column_settings[8].color=yellow_color
+                pants.interface.table_column_settings[8].color=yellow_color
             else
                 response[7]=regarded_icon
-                purps.interface.table_column_settings[8].color=grey_color
+                pants.interface.table_column_settings[8].color=grey_color
             end
         end,
         
@@ -273,7 +273,7 @@ purps.interface.table_column_settings={
         align="LEFT",
         index=1,
         format=function(name) 
-            return purps:remove_realm(name)
+            return pants:remove_realm(name)
         end,
         
         color=function(_,_,tbl)
@@ -294,17 +294,17 @@ purps.interface.table_column_settings={
         color=function(_,_,tbl)
             local r,g,b,a=1,1,1,1
             if tbl.disregarded then 
-                r,g,b,a=unpack(purps.current_session_paras.disregard.color)
+                r,g,b,a=unpack(pants.current_session_paras.disregard.color)
             else
                 local response_id=tbl.response_id
-                r,g,b,a=unpack(purps.current_session_paras.response_colours[response_id] or {1,1,1,1})
+                r,g,b,a=unpack(pants.current_session_paras.response_colours[response_id] or {1,1,1,1})
             end
             return {r=r,g=g,b=b,a=a or 1}
         end,
         compareSort=function(self,rowA,rowB,sortBy)
             local x,y=self:GetRow(rowA),self:GetRow(rowB)
-            local a = ( x.disregarded and purps.current_session_paras.disregard_order )  or  (x.response_id) or 0
-            local b = ( y.disregarded and purps.current_session_paras.disregard_order )  or  (y.response_id) or 0         
+            local a = ( x.disregarded and pants.current_session_paras.disregard_order )  or  (x.response_id) or 0
+            local b = ( y.disregarded and pants.current_session_paras.disregard_order )  or  (y.response_id) or 0         
             local column=self.columns[sortBy]
             local direction=column.sort or column.defaultSort or 'asc'
             if direction:lower() == 'asc' then 
@@ -411,11 +411,11 @@ purps.interface.table_column_settings={
         format="icon",
         events={
 			OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-                if not purps.currently_in_council then purps:send_user_message('not_in_council','disregard responses'); return end
-                local item_index=purps.interface.currently_selected_item or nil
+                if not pants.currently_in_council then pants:send_user_message('not_in_council','disregard responses'); return end
+                local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 local regard=(not rowData.disregarded) or false
-                purps:send_response_update({item_index=item_index,row_index=rowIndex,disregarded=regard})
+                pants:send_response_update({item_index=item_index,row_index=rowIndex,disregarded=regard})
             end,
             }, 
         },
@@ -430,24 +430,24 @@ purps.interface.table_column_settings={
         format="icon",
         events={
             OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-                local item_index=purps.interface.currently_selected_item or nil
+                local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 local name=rowData[1]
 
-                local simc_string=purps.simc_strings[name]
+                local simc_string=pants.simc_strings[name]
                 if (not simc_string) or (simc_string=="failed") then 
-                    purps:send_simc_request(name)
+                    pants:send_simc_request(name)
                     return
                 elseif simc_string=="pending" then return end
 
 
-                local iteminfo=purps.current_session[item_index].item_info
-                local extra=purps:generate_bag_item_from_info(iteminfo)
+                local iteminfo=pants.current_session[item_index].item_info
+                local extra=pants:generate_bag_item_from_info(iteminfo)
                 
                 local concat=('%s%s'):format(simc_string,extra)
 
-                if purps.simc_strings[name] then 
-                    purps:show_simc_output(concat) 
+                if pants.simc_strings[name] then 
+                    pants:show_simc_output(concat) 
                 end
                 --show_simc_output
             end,
@@ -456,7 +456,7 @@ purps.interface.table_column_settings={
                 local cellData = rowData[columnData.index];
 
                 local name,s=rowData[1],''
-                local simc_string=purps.simc_strings[name]
+                local simc_string=pants.simc_strings[name]
                 
                 if not simc_string then 
                     s="Click to request simc info"
@@ -487,18 +487,18 @@ purps.interface.table_column_settings={
         format="icon",
         events={
             OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-                if not purps.currently_in_council then purps:send_user_message('not_in_council','assign winners'); return end
-                local item_index=purps.interface.currently_selected_item or nil
+                if not pants.currently_in_council then pants:send_user_message('not_in_council','assign winners'); return end
+                local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 if rowData.win then return end
                 local name=rowData[1]
-                purps:send_item_assignment(item_index,name)
+                pants:send_item_assignment(item_index,name)
             end,
             }, 
         },
 }
 
-local table_column_default=purps.interface.table_column_settings
+local table_column_default=pants.interface.table_column_settings
 
 local help_table1,wipe={},table.wipe
 function interface:generate_response()
@@ -534,7 +534,7 @@ end
 function interface:update_main_frame_parameters(initialize)
     local frame=interface.session_main_frame
     local icon=frame.preview_icon
-    local para=purps.para
+    local para=pants.para
     local panel=interface.session_scroll_panel
     frame:ClearAllPoints()
     frame:SetPoint("TOPLEFT",panel,"TOPRIGHT")
@@ -551,7 +551,7 @@ end
 
 function interface:update_vote_frame_parameters(initialize)
     local frame=interface.session_vote_frame
-    local para=purps.para
+    local para=pants.para
     local panel=interface.session_scroll_panel
     frame:ClearAllPoints()
     frame:SetPoint("TOPRIGHT",panel,"TOPLEFT")
@@ -565,7 +565,7 @@ end
 function interface:udpate_raid_table_parameters(initialize)
     local frame=interface.session_main_frame
     local tbl=frame.raid_table
-    local para=purps.para
+    local para=pants.para
     tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",para.raid_table_x_inset,-para.raid_table_y_inset)
     tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-para.raid_table_x_inset,-para.raid_table_y_inset)
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,para.raid_table_bottom_inset)
@@ -577,7 +577,7 @@ function interface:udpate_raid_table_parameters(initialize)
 end
 
 function interface:update_scroll_parameters(initialize)
-    local para=purps.para
+    local para=pants.para
     local panel=self.session_scroll_panel
     panel:SetWidth(para.scroll_frame_width or 60)
     panel:SetHeight(para.scroll_frame_height or 200)
@@ -599,10 +599,10 @@ function interface:refill_vote_frame()
 
     local vote=self.session_vote_frame
     
-    local index=purps:name_index_in_session(purps.full_name,item_index)
+    local index=pants:name_index_in_session(pants.full_name,item_index)
     
-    if purps.current_session and purps.current_session[item_index] then
-        local response=purps.current_session[item_index].responses[index]
+    if pants.current_session and pants.current_session[item_index] then
+        local response=pants.current_session[item_index].responses[index]
         if not response then
             --youre not allowed to respond here
             vote.blocker:Show()
@@ -610,7 +610,7 @@ function interface:refill_vote_frame()
         end
         vote.blocker:Hide()
 
-        local response_id=(response.response_id==0 and #purps.current_session_paras.response_names) or response.response_id 
+        local response_id=(response.response_id==0 and #pants.current_session_paras.response_names) or response.response_id 
         vote.response_dd:SetValue(response_id)
         vote.note_eb:SetText(response.note or "")
         
@@ -624,7 +624,7 @@ end
 
 local help_table,wipe,pairs={},table.wipe,pairs
 function interface:update_response_dd()
-    local para=purps.current_session_paras.response_names
+    local para=pants.current_session_paras.response_names
     if not para then return end
 
     local dd=self.session_vote_frame.response_dd
@@ -654,7 +654,7 @@ local function scroll_child_tooltip(self)
     local item_index=self.button.session_index or nil
     if not item_index then return end 
 
-    local page=purps.current_session[item_index]
+    local page=pants.current_session[item_index]
     if not page then return end
 
     local itemLink=page.item_info.itemLink    
@@ -667,7 +667,7 @@ end
 
 local function check_selected(self)
     local bool=false
-    local ind1,ind2=self.session_index or nil,purps.interface.currently_selected_item or nil
+    local ind1,ind2=self.session_index or nil,pants.interface.currently_selected_item or nil
     
     if (ind1) and (ind2) and (ind1==ind2) then bool=true end
     
@@ -744,7 +744,7 @@ setmetatable(set_status,set_status.metatable)
 local function check_status(self)
     local index=self.session_index
     if not index then return end
-    local session,status,player_index=purps.current_session[index],"none",purps:name_index_in_session(purps.full_name,index)
+    local session,status,player_index=pants.current_session[index],"none",pants:name_index_in_session(pants.full_name,index)
 
     if (not session) or (not session.responses) then return end
         
@@ -752,7 +752,7 @@ local function check_status(self)
         status="not_in_list"
     elseif session.responses[player_index].win then
         status='won'
-    elseif purps:item_assigned_player(index) then
+    elseif pants:item_assigned_player(index) then
         status='lost'
     elseif not session.responses[player_index].voted then
         status="vote_pending"
@@ -765,7 +765,7 @@ end
 
 function interface:populate_scroll_child()
 
-    local para=purps.para
+    local para=pants.para
     local scrollChild=self.session_scroll_panel.scrollChild
     if not scrollChild.items then scrollChild.items={} end
     
@@ -787,7 +787,7 @@ function interface:populate_scroll_child()
         btn.item_texture:SetTexture(para.scroll_item_default_icon)
         
     
-        btn.tooltip=ui:Tooltip(btn,scroll_child_tooltip,"PurpsAddon_scroll_frame_icon_tooltip"..tostring(i),"TOPRIGHT",true)
+        btn.tooltip=ui:Tooltip(btn,scroll_child_tooltip,"PantsAddon_scroll_frame_icon_tooltip"..tostring(i),"TOPRIGHT",true)
         btn.tooltip.button=btn
         
         --'selected' frame
@@ -814,9 +814,9 @@ function interface:populate_scroll_child()
 end
 
 function interface:apply_session_to_scroll()
-    local items=purps.current_session
+    local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
-    local order=purps:get_session_order()
+    local order=pants:get_session_order()
     
     for i=1,#order do
         scroll_items[i]:Show()
@@ -840,8 +840,8 @@ function interface:table_reload_item()
     
     local item_index=self.currently_selected_item or nil
     
-    if item_index and (purps.current_session) and (purps.current_session[item_index]) and (purps.current_session[item_index].responses) then
-        tbl:SetData(purps.current_session[item_index].responses)
+    if item_index and (pants.current_session) and (pants.current_session[item_index]) and (pants.current_session[item_index].responses) then
+        tbl:SetData(pants.current_session[item_index].responses)
         
     else
         tbl:SetData(empty_table)
@@ -851,14 +851,14 @@ end
 local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
 function interface:apply_selected_item()
     
-    if (purps.active_session) and (self.currently_selected_item) and (purps.current_session) then
+    if (pants.active_session) and (self.currently_selected_item) and (pants.current_session) then
     
         local item_index=self.currently_selected_item or nil
         if not item_index then return end 
         --TBA add error message
         
-        local para=purps.para
-        local page=purps.current_session[item_index]
+        local para=pants.para
+        local page=pants.current_session[item_index]
         local item=page.item_info
         local frame=self.session_main_frame
         
@@ -873,7 +873,7 @@ function interface:apply_selected_item()
         
     else
     
-        local para=purps.para
+        local para=pants.para
         local frame=self.session_main_frame
         
         self.current_selected_item=nil
@@ -916,27 +916,27 @@ do
     frame:SetScript("OnDragStop",function() 
         panel:StopMovingOrSizing() 
         update_scroll_XY_paras()      
-        purps.interface:update_scroll_parameters()
+        pants.interface:update_scroll_parameters()
     end)  
     
     local sizer=frame.sizer_frame
     sizer:SetFrameLevel(frame:GetFrameLevel()+10)
     sizer:SetScript("OnDragStart",function()
-        -- local x,y=unpack(purps.para.scroll_frame_pos)
-        -- x=x+purps.para.scroll_frame_width
+        -- local x,y=unpack(pants.para.scroll_frame_pos)
+        -- x=x+pants.para.scroll_frame_width
         -- frame:ClearAllPoints()
         -- frame:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
-        -- frame:SetSize(purps.para.main_frame_width,purps.para.scroll_frame_height)
+        -- frame:SetSize(pants.para.main_frame_width,pants.para.scroll_frame_height)
         frame:StartSizing("BOTTOMRIGHT") 
     end)
     sizer:SetScript("OnDragStop",function() 
         frame:StopMovingOrSizing() 
         panel:StopMovingOrSizing()
         local w,h=frame:GetWidth(),frame:GetHeight()
-        purps.para.main_frame_width=w
-        purps.para.main_frame_height=h
-        purps.interface:update_scroll_parameters()
-        purps.interface:update_main_frame_parameters()
+        pants.para.main_frame_width=w
+        pants.para.main_frame_height=h
+        pants.interface:update_scroll_parameters()
+        pants.interface:update_main_frame_parameters()
         
         raid_table_adapt_rows_to_height()
     end)  
@@ -975,7 +975,7 @@ do
     vote:SetScript("OnDragStop",function() 
         panel:StopMovingOrSizing() 
         update_scroll_XY_paras()      
-        purps.interface:update_scroll_parameters()
+        pants.interface:update_scroll_parameters()
     end)  
 
     local sizer=vote.sizer_frame
@@ -984,7 +984,7 @@ do
         local x,y=vote:GetLeft(),vote:GetTop()
         vote:ClearAllPoints()
         vote:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",x,y)
-        vote:SetSize(purps.para.vote_frame_width,purps.para.scroll_frame_height)
+        vote:SetSize(pants.para.vote_frame_width,pants.para.scroll_frame_height)
         panel:ClearAllPoints()
         panel:SetPoint("TOPLEFT",vote,"TOPRIGHT")
         panel:SetPoint("BOTTOMLEFT",vote,"BOTTOMRIGHT")
@@ -993,11 +993,11 @@ do
     sizer:SetScript("OnDragStop",function() 
         vote:StopMovingOrSizing() 
         local w,h=vote:GetWidth(),vote:GetHeight()
-        purps.para.vote_frame_width=w
-        purps.para.vote_frame_height=h
-        purps.para.scroll_frame_height=h
-        purps.interface:update_scroll_parameters()
-        purps.interface:update_vote_frame_parameters()
+        pants.para.vote_frame_width=w
+        pants.para.vote_frame_height=h
+        pants.para.scroll_frame_height=h
+        pants.interface:update_scroll_parameters()
+        pants.interface:update_vote_frame_parameters()
     end)  
 
     --create vote blocker
@@ -1025,7 +1025,7 @@ function interface:refresh_sort_raid_table()
 end
 
 function interface:check_selected_item()
-    local items=purps.current_session
+    local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
     
     if not items then interface.currently_selected_item=nil; return end
@@ -1036,7 +1036,7 @@ function interface:check_selected_item()
 end
 
 function interface:check_items_status()
-    local items=purps.current_session
+    local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
 
     if not items then return end
@@ -1046,7 +1046,7 @@ function interface:check_items_status()
 end
 
 function interface:reset_items_status()
-    local items=purps.current_session
+    local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
 
     if not items then return end

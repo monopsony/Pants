@@ -1,3 +1,3 @@
-local purps=PurpsAddon
+local pants=PantsAddon
 
-local interface=purps.interface
+local interface=pants.interface

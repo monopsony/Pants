@@ -1,12 +1,12 @@
-local purps=PurpsAddon
+local pants=PantsAddon
 
-local interface=purps.interface
+local interface=pants.interface
 local gui = LibStub("AceGUI-3.0")
 local AceConfig=LibStub("AceConfig-3.0")
 local AceConfigDialog=LibStub("AceConfigDialog-3.0")
 
 
-purps.optionsTable = {
+pants.optionsTable = {
 	type='group',
 	childGroups='tab',
 	args={
@@ -26,5 +26,5 @@ purps.optionsTable = {
 	}
 }
 
-AceConfig:RegisterOptionsTable('Purps',purps.optionsTable)
-AceConfigDialog:AddToBlizOptions('Purps','Purps')
+AceConfig:RegisterOptionsTable('pants',pants.optionsTable)
+AceConfigDialog:AddToBlizOptions('pants','pants')
