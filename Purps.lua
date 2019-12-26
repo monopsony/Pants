@@ -73,6 +73,7 @@ function pants:OnInitialize()
 	self.interface:update_vote_frame_parameters(true)
 	
 	self.interface:reset_items_status()
+	self.interface.session_scroll_panel:Hide()
 end
 
 
@@ -97,7 +98,7 @@ local chat_commands={
 			end
 		end
 		
-
+		self.interface.session_scroll_panel:Show()
 	end,
 
 	["help"]=function(...)
@@ -107,6 +108,7 @@ local chat_commands={
 	
 	["test_table"]=function(...)
 		PantsAddon:raid_table_test_data()
+		self.interface.session_scroll_panel:Show()
 	end,
 	
 	["raid_ping"]=function()     

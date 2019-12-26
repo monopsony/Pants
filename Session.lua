@@ -158,6 +158,7 @@ function pants:apply_end_session()
     wipe(self.current_session)
     pants.interface:apply_session_to_scroll()
     pants.interface:apply_selected_item()
+    self.interface.session_scroll_panel:Hide()
 end
 
 function pants:apply_rl_paras()
@@ -189,10 +190,11 @@ function pants:apply_item_assignment(data)
     end
     
     self.interface:check_items_status()
+    self.interface:update_assigned_text()
 end
 
 function pants:item_assigned_player(item_index)
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return false end 
-    for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1] end end
+    for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1],v.class end end
     return false
 end

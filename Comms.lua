@@ -60,7 +60,7 @@ pants.registered_comms={
 			local pants=pants
 			afterDo(waiting_time,function() pants:send_equipped_items(i) end)
 		end
-		
+		pants.interface.session_scroll_panel:Show()
 	end,
 	
 	["pantsSAdd"]=function(data,_,sender)

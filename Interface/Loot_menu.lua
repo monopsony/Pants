@@ -42,7 +42,7 @@ do
     frame:SetClipsChildren(true)
 
 
-    frame.sizer_frame=ui:Frame(frame,10,10)
+    frame.sizer_frame=ui:Frame(frame,15,15)
     local sizer=frame.sizer_frame
     sizer:SetPoint("BOTTOMRIGHT")
     
@@ -90,6 +90,10 @@ do
     frame.text_item_extra=ui:FontString(frame,"")
     frame.text_item_extra:SetPoint("TOPLEFT",frame.text_item_level,"BOTTOMLEFT",0,-5)
     
+
+    frame.text_assigned=ui:FontString(frame,"")
+    frame.text_assigned:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-85,-10)
+
 end
 
 
@@ -107,7 +111,7 @@ do
     frame:SetClipsChildren(true)
     frame:SetSize(300,300)
 
-    frame.sizer_frame=ui:Frame(frame,10,10)
+    frame.sizer_frame=ui:Frame(frame,15,15)
     local sizer=frame.sizer_frame
     sizer:SetPoint("BOTTOMLEFT")
     
@@ -857,6 +861,20 @@ function interface:table_reload_item()
 end
 
 local ITEM_QUALITY_COLORS=ITEM_QUALITY_COLORS
+function interface:update_assigned_text()
+    local frame=self.session_main_frame
+    local item_index=self.currently_selected_item or nil
+    if not item_index then return end
+    local assigned='|cffff0000No winner yet|r'
+    local winner,class=pants:item_assigned_player(item_index)
+    if winner then
+        winner=pants:remove_realm(winner)
+        assigned=('|cff00ff00Winner: |r|c%s%s|r'):format(pants:class_to_hex(class),winner)
+    end
+    frame.text_assigned:SetText(assigned)
+
+end
+
 function interface:apply_selected_item()
     
     if (pants.active_session) and (self.currently_selected_item) and (pants.current_session) then
@@ -878,6 +896,7 @@ function interface:apply_selected_item()
         frame.text_item_info:SetText(  ("%s, %s"):format(item.itemSubType or "",(item.itemEquipLoc and _G[item.itemEquipLoc] ) or "") )
         frame.text_item_level:SetText(  ("ilvl: %d"):format(item.itemLevel or 69))
         frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
+        self:update_assigned_text()
         
     else
     
@@ -890,6 +909,7 @@ function interface:apply_selected_item()
         frame.text_item_info:SetText("")
         frame.text_item_level:SetText("")
         frame.text_item_extra:SetText("")
+        frame.text_assigned:SetText('')
     end
     
     self:table_reload_item()
@@ -903,11 +923,11 @@ end
 
 --create loot menu scroll frame item picker
 do
-    
     --interface.session_scroll_frame=ui:
     --local args=interface.session_scroll_frame
     local frame=interface.session_main_frame
-    local panel,scrollFrame,scrollChild,scrollBar=ui:ScrollFrame(UIParent,60,200)
+    local panel=ui:ScrollFrame(UIParent,60,200)
+    local scrollFrame=panel.scrollFrame
     frame:SetParent(panel) --changed my mind
     interface.session_scroll_panel=panel
     --panel.scrollChild / scrollFrame / scrollBar
@@ -927,6 +947,17 @@ do
         pants.interface:update_scroll_parameters()
     end)  
     
+    scrollFrame:EnableMouse(true)
+    scrollFrame:RegisterForDrag('LeftButton')
+    scrollFrame:SetScript("OnDragStart",function() 
+        panel:StartMoving()
+    end)
+    scrollFrame:SetScript("OnDragStop",function() 
+        panel:StopMovingOrSizing() 
+        update_scroll_XY_paras()      
+        pants.interface:update_scroll_parameters()
+    end)     
+
     local sizer=frame.sizer_frame
     sizer:SetFrameLevel(frame:GetFrameLevel()+10)
     sizer:SetScript("OnDragStart",function()
@@ -948,6 +979,10 @@ do
         
         raid_table_adapt_rows_to_height()
     end)  
+    sizer.texture=sizer:CreateTexture(nil,'OVERLAY')
+    sizer.texture:SetAllPoints()
+    sizer.texture:SetTexture(media..'SIZER')
+    sizer.texture:SetAlpha(.7)
     
     local interface=interface
     --create vote/main expansion buttons
@@ -1006,13 +1041,30 @@ do
         pants.para.scroll_frame_height=h
         pants.interface:update_scroll_parameters()
         pants.interface:update_vote_frame_parameters()
-    end)  
+    end) 
+
+    sizer.texture=sizer:CreateTexture(nil,'OVERLAY')
+    sizer.texture:SetAllPoints()
+    sizer.texture:SetTexture(media..'SIZER')
+    sizer.texture:SetAlpha(.7)
+    sizer.texture:SetRotation(-math.pi/2)
 
     --create vote blocker
     vote.blocker=CreateFrame('Button',nil,vote)
     bl=vote.blocker
     bl:SetFrameLevel(vote:GetFrameLevel()+4)
     bl:SetAllPoints()
+    bl:EnableMouse(true)
+    bl:RegisterForDrag('LeftButton')
+    bl:SetScript("OnDragStart",function() 
+        panel:StartMoving()
+    end)
+    bl:SetScript("OnDragStop",function() 
+        panel:StopMovingOrSizing() 
+        update_scroll_XY_paras()      
+        pants.interface:update_scroll_parameters()
+    end)  
+
 
     bl.texture=bl:CreateTexture(nil,'OVERLAY')
     bl.texture:SetAllPoints()
@@ -1023,8 +1075,9 @@ do
     bl.text:SetFont("Fonts\\FRIZQT__.TTF",13)
     bl.text:SetText('Not lootable')
     bl:Show()
-
 end
+
+
 
 function interface:refresh_sort_raid_table()
     local tbl=self.raid_table

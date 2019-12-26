@@ -333,6 +333,12 @@ function pants:RGBToHex(r, g, b)
 	return string.format("%02x%02x%02x", r*255, g*255, b*255)
 end
 
+local RAID_CLASS_COLORS=RAID_CLASS_COLORS
+function pants:class_to_hex(class)
+    local c=RAID_CLASS_COLORS[class]
+    if not c then return '|cffffffff' end
+    return c:GenerateHexColor()
+end
 
 local LibS =LibStub:GetLibrary("AceSerializer-3.0")
 local LibD=LibStub:GetLibrary("LibDeflate")
