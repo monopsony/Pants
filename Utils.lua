@@ -12,6 +12,9 @@ purps.predefined_messages={
     ["add_items_none_found"]="No items were found. Type '/purps add' followed by shift-clicking relevant items to add them to the session.",
     ["help_message"]=function() return ("This is the %s help message,"):format(purps.predefined_messages.name) end,
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
+    ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
+    ['no_rl_paras']='Raid leader has not sent out council members.',
+    ['generic']=function(a) return tostring(a) end,
 }
 
 purps.item_loc_to_slot={

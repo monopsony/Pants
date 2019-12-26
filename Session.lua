@@ -61,7 +61,6 @@ purps.session_test_data={
     {"Mario",2,690,nil},
 }
 
-
 function purps:raid_table_test_data()
     local tbl=purps.interface.raid_table
     tbl:SetData(self.session_test_data)
@@ -79,13 +78,14 @@ function purps:generate_group_member_list(item_info)
         local _,class=UnitClass(unit)
         if not name then break end
         if not self.item_itemSubType_class_filters[itemSubType][class] then
-            a[#a+1]={self:convert_to_full_name(name),"",0,nil,nil,"",class=class,response_id=0}  --name,response_id,ilvl,item1,item2,note
+            a[#a+1]={self:convert_to_full_name(name),"",0,nil,nil,"",class=class,response_id=0,win=false}  --name,response_id,ilvl,item1,item2,note
         end
     end
     return a
 end
 
 function purps:start_session()
+    if not self.currently_in_council then purps:send_user_message('not_in_council','start sessions'); return end
     local tbl=self.current_session
     if (not tbl) or (#tbl==0) then 
         self:send_user_message("add_items_none_found")
@@ -112,7 +112,14 @@ function purps:name_index_in_session(name,session_index)
 end
 
 function purps:apply_response_update(sender,response)
-    if not response or not (type(response)=="table") or (not sender) then return end
+    if (not response) or not (type(response)=="table") or (not sender) then return end
+
+    -- if not sender then 
+    --     if response.multiple=true then 
+    --         for k,v in pairs(response.responses) do self:apply_response_update(k,v) end
+    --     else return end
+    -- end
+
     local item_index=response.item_index 
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return end 
     
@@ -153,7 +160,39 @@ function purps:apply_end_session()
     purps.interface:apply_selected_item()
 end
 
+function purps:apply_rl_paras()
+    local para=self.current_rl_paras
+    if not para then return end 
+    local in_council=false
 
+    for k,v in pairs(para.council) do
+        if v==purps.full_name then in_council=true; break end
+    end
 
+    purps.currently_in_council=in_council
+end
 
+function purps:apply_item_assignment(data)
+    if (not data) or (not data.name) or (not data.item_index) then return end 
+    local item_index,name=data.item_index,data.name
+    if (not item_index) or (not name) or (not self.current_session) or (not self.current_session[item_index]) then return end 
+    local index=purps:name_index_in_session(name,item_index)
+    if not index then return end
 
+    for k,v in pairs(self.current_session[item_index].responses) do 
+        if k==index then v.win=true else v.win=false end
+    end
+
+    --update interface if item is selected
+    if self.interface.currently_selected_item==item_index then
+        self.interface:refresh_sort_raid_table()
+    end
+    
+    self.interface:check_items_status()
+end
+
+function purps:item_assigned_player(item_index)
+    if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return false end 
+    for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1] end end
+    return false
+end

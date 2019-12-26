@@ -8,7 +8,14 @@ purps.registered_comms={
 		purps:send_user_message("raid_ping",sender,channel)
 	end,
 	
+	['PurpsRLSend']=function(data,channel,sender)
+		local tbl=purps:decode_decompress_deserialize(data)
+		purps.current_rl_paras=tbl
+		purps:apply_rl_paras()
+	end,
+
 	["PurpsActSReq"]=function(data,_,sender)
+		purps:send_rl_paras() --check if youre RL in the function itself
 		if UnitIsUnit("player",sender) then return end
 		if data=="0" then 
 			purps:send_active_session_ping()
@@ -78,6 +85,11 @@ purps.registered_comms={
 		purps:apply_end_session()
 	end,
 
+	["PurpsIAssign"]=function(data,_,sender)
+		local data=purps:decode_decompress_deserialize(data)
+		purps:apply_item_assignment(data)
+	end,
+
 	["PurpsSimc"]=function(data,_,sender)
 		local s=purps:decode_decompress(data)
 		purps:save_simc_string(sender,s)
@@ -87,11 +99,21 @@ purps.registered_comms={
 	["PurpsSimcReq"]=function(data,_,sender)
 		local s=purps:decode_decompress(data)
 		local name=purps:convert_to_full_name(s)
+		purps:save_simc_string(name,"pending")
+		purps.interface:refresh_sort_raid_table()
+		local purps=purps
+		C_Timer.After(3,function()
+			if not (purps:get_simc_string(name)=='pending') then return end
+			purps:save_simc_string(name,'failed')
+			purps.interface:refresh_sort_raid_table()
+		end)
 		if name~=purps.full_name then return end 
 		purps:send_simc_string()
 	end,
-
 }
+
+
+
 local registered_comms=purps.registered_comms
 
 function purps:send_raid_comm(prefix,data)
@@ -110,6 +132,7 @@ end
 
 
 function purps:send_simc_request(name)
+	if not self.currently_in_council then purps:send_user_message('not_in_council','send SimC requests'); return end
 	local s=self:compress_encode(name)
 	self:send_raid_comm("PurpsSimcReq",s)
 end
@@ -122,6 +145,7 @@ function purps:send_current_session()
 end
 
 function purps:send_new_session_item(i)
+    if not self.currently_in_council then purps:send_user_message('not_in_council','end sessions'); return end
 	local session=self.current_session
 	if (not i) or (#session<i) then return end 
 	session['item_session_id']=i
@@ -149,6 +173,7 @@ function purps:send_equipped_items(session_index)
 end
 
 function purps:send_end_session()
+    if not self.currently_in_council then purps:send_user_message('not_in_council','end sessions'); return end
 	self:send_raid_comm("PurpsSEnd",nil)
 end
 
@@ -170,6 +195,18 @@ function purps:send_current_active_session()
 	self:send_raid_comm("PurpsActSSend",s)
 end
 
+function purps:send_rl_paras()
+	local para=self.para.rl_paras
+	local s=self:serialize_compress_encode(para)
+	if not UnitIsGroupLeader('player') then return end
+	self:send_raid_comm("PurpsRLSend",s)
+end
 
 
+function purps:send_item_assignment(item_index,name)
+    if (not item_index) or (not name) or (not self.current_session[item_index]) then return end
+    local data={item_index=item_index,name=name}
+	local s=self:serialize_compress_encode(data)
+	self:send_raid_comm("PurpsIAssign",s)
+end
 

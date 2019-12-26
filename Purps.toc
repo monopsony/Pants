@@ -13,5 +13,7 @@ Comms.lua
 simc.lua
 
 Interface\Loot_menu.lua
-
+Interface\Options.lua
+Interface\RL_options.lua
+Interface\ML_options.lua
 

@@ -15,10 +15,10 @@ local defaults={
 		scroll_frame_height=400,
 		scroll_frame_pos={500,500},
 
-		main_frame_width=300,
-		main_frame_height=200,
+		main_frame_width=450,
+		main_frame_height=450,
 
-		raid_table_y_inset=175,
+		raid_table_y_inset=130,
 		raid_table_x_inset=10,
 		raid_table_bottom_inset=40,
 		raid_table_row_height=30,
@@ -36,6 +36,21 @@ local defaults={
 			disregard={text="Disregarded",color={.9,.6,0,1}},
 			disregard_order=1.5,
 		}, --end of session_paras
+
+		rl_paras={
+			council={
+				[1]='',
+				[2]='',
+				[3]='',
+				[4]='',
+				[5]='',
+				[6]='',
+				[7]='',
+				[8]='',
+				[9]='',
+			}
+		}
+
 	},-- end of profile
 }--end of defaults
 
@@ -64,6 +79,8 @@ end
 local chat_commands={
 	["add"]=function(self,msg)
 	
+		if (self.active_session) and (not self.currently_in_council) then purps:send_user_message('not_in_council','add items to sessions'); return end
+
 		if not purps:is_itemlink(msg) then purps:send_user_message("add_items_none_found") end
 		local msg=purps:separate_itemlinks(msg)
 		local args={self:GetArgs(msg,10,1)}
@@ -116,6 +133,28 @@ local chat_commands={
 		self:send_end_session()
 	end,
 	
+	['toggle']=function(self)
+		local f=PurpsAddon.interface.session_scroll_panel
+		if f:IsShown() then f:Hide() else f:Show() end
+	end,
+
+	['council']=function(self)
+		local para=self.current_rl_paras
+		if (not para) or (not para.council) then self:send_user_message('no_rl_paras'); return end
+		local s=('Council members\n%s  %s  %s\n'):format('ID','Name','Status')  --'ID','Name','Status')
+		for k,v in pairs(para.council) do 
+			if (type(v)=='string') and (v~='') then 
+				local name=Ambiguate(v,'none')
+				local status=((not UnitInRaid(name)) and '|cffff0000Not in raid|r') 
+					or ((not UnitIsConnected(name)) and '|cffffff00Offline|r')
+					or '|cff00ff00Connected|r'
+
+				s=('%s%s  %s  %s\n'):format(s,k,v,status)
+			end
+		end
+		purps:send_user_message('generic',s)
+	end,
+
 	["metatable"]={__index=function(self,key) return self["help"] end},
 }
 setmetatable(chat_commands,chat_commands.metatable)
@@ -123,7 +162,7 @@ setmetatable(chat_commands,chat_commands.metatable)
 
 function purps:chat_command_handler(msg)
 	local key=self:GetArgs(msg,1)
-	if not key then chat_commands["help"]() 
+	if (not key) or (key=='metatable') then chat_commands["help"]() 
 	else chat_commands[key](self,msg) end
 end
 purps:RegisterChatCommand("purps","chat_command_handler")
@@ -138,11 +177,11 @@ end
 
 
 local event_frame=CreateFrame('Frame','PurpsGlobalEventFrame',UIParent)
-registered_events={'PLAYER_ENTERING_WORLD'}
+registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}
 purps.active_session_found_requested=false
 for k,v in pairs(registered_events) do event_frame:RegisterEvent(v) end
 function event_frame:handle_event(event)
-	if event=='PLAYER_ENTERING_WORLD' then 
+	if (event=='PLAYER_ENTERING_WORLD') or (event=='GROUP_JOINED') then 
 
 		purps.full_name=purps:unit_full_name("player")
 		local _,realm=UnitFullName("player")
@@ -152,6 +191,9 @@ function event_frame:handle_event(event)
 		--I assume for people to load your name (nil otherwise)
 		local purps=purps
 		C_Timer.After(0,function() purps:send_active_session_request() end)
+	
+	elseif event=='PARTY_LEADER_CHANGED' then
+		purps:send_rl_paras()
 	end
 
 end

@@ -25,6 +25,11 @@ function purps:save_simc_string(sender,data)
 	self.simc_strings[name]=data
 end
 
+function purps:get_simc_string(sender)
+	local name=self:convert_to_full_name(sender)
+	return self.simc_strings[name] or ''
+end
+
 function purps:show_simc_output(out)
 	if not SimcCopyFrame then print("No Simulationcraft Addon found! Output cannot be given"); return end --TBA error handling
 	-- show the appropriate frames

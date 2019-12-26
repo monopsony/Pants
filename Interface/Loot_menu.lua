@@ -179,7 +179,7 @@ local has_note,has_no_note=media.."NOTE_FILLED",media.."NOTE_EMPTY"
 local regarded_icon,disregarded_icon=media.."EYE_OPEN",media.."EYE_CLOSED"
 local simc_filled,simc_empty=media.."SIMC_ICON",media.."SIMC_ICON"
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
-local yellow_color,grey_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1}
+local yellow_color,grey_color,white_color,red_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1},{r=1,g=1,b=1,a=1},{r=1,g=.2,b=.2,a=1}
 purps.interface.table_column_settings={
 
     --Updater
@@ -224,9 +224,25 @@ purps.interface.table_column_settings={
             if (not simc) or (simc=="") then 
                 response[8]=simc_empty
                 purps.interface.table_column_settings[9].color=grey_color
+            elseif (simc=="pending") then
+                response[8]=simc_filled
+                purps.interface.table_column_settings[9].color=white_color
+            elseif (simc=="failed") then
+                response[8]=simc_filled
+                purps.interface.table_column_settings[9].color=red_color
             else
                 response[8]=simc_filled
                 purps.interface.table_column_settings[9].color=yellow_color
+            end
+
+            --assign
+            local win=response.win
+            if (not win)  then 
+                response[9]=simc_filled
+                purps.interface.table_column_settings[10].color=grey_color
+            else
+                response[9]=simc_filled
+                purps.interface.table_column_settings[10].color=yellow_color
             end
 
             --response
@@ -246,9 +262,6 @@ purps.interface.table_column_settings={
                 response[7]=regarded_icon
                 purps.interface.table_column_settings[8].color=grey_color
             end
-            
-
-
         end,
         
     },
@@ -398,6 +411,7 @@ purps.interface.table_column_settings={
         format="icon",
         events={
 			OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                if not purps.currently_in_council then purps:send_user_message('not_in_council','disregard responses'); return end
                 local item_index=purps.interface.currently_selected_item or nil
                 if not item_index then return end 
                 local regard=(not rowData.disregarded) or false
@@ -421,10 +435,11 @@ purps.interface.table_column_settings={
                 local name=rowData[1]
 
                 local simc_string=purps.simc_strings[name]
-                if not simc_string then 
+                if (not simc_string) or (simc_string=="failed") then 
                     purps:send_simc_request(name)
                     return
-                end 
+                elseif simc_string=="pending" then return end
+
 
                 local iteminfo=purps.current_session[item_index].item_info
                 local extra=purps:generate_bag_item_from_info(iteminfo)
@@ -436,10 +451,53 @@ purps.interface.table_column_settings={
                 end
                 --show_simc_output
             end,
+
+            OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                local cellData = rowData[columnData.index];
+
+                local name,s=rowData[1],''
+                local simc_string=purps.simc_strings[name]
+                
+                if not simc_string then 
+                    s="Click to request simc info"
+                elseif simc_string=='pending' then
+                    s='Simc info is underway...'
+                elseif simc_string=='failed' then
+                    s='Simc info failed to arrive. Perhaps recipient\ndoes not have the Simulationcraft addon enabled.\nClick to try again.'
+                else 
+                    s='Show simc info'
+                end
+                show_tooltip_string(cellFrame, true, s);
+                return false;
+            end,
+            OnLeave = function(rowFrame, cellFrame)
+                show_tooltip_string(cellFrame, false);
+                return false;
+            end
             }, 
         },
 
+    --assign icon
+    {
+        name="Simc",
+        sortable=false,
+        width=42,
+        align="CENTER",
+        index=9,
+        format="icon",
+        events={
+            OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                if not purps.currently_in_council then purps:send_user_message('not_in_council','assign winners'); return end
+                local item_index=purps.interface.currently_selected_item or nil
+                if not item_index then return end 
+                if rowData.win then return end
+                local name=rowData[1]
+                purps:send_item_assignment(item_index,name)
+            end,
+            }, 
+        },
 }
+
 local table_column_default=purps.interface.table_column_settings
 
 local help_table1,wipe={},table.wipe
@@ -465,8 +523,8 @@ do
     local tbl=ui:ScrollTable(frame,table_column_default,0,20)
     frame.raid_table=tbl
     interface.raid_table=tbl
-    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-150)
-    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-150)
+    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-75)
+    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-75)
     tbl:EnableSelection(true)
     
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
@@ -532,6 +590,7 @@ function interface:update_scroll_parameters(initialize)
     local size=para.scroll_frame_width/3
     panel.expand_left_button:SetSize(size,size)
     panel.expand_right_button:SetSize(size,size)
+    panel.close_window_button:SetSize(size,size)
 end
 
 function interface:refill_vote_frame()
@@ -633,7 +692,8 @@ local set_status={
         self.status="vote_pending"
         self.status_frame:Show()
         self.status_frame:SetSize(self:GetWidth()*.7,self:GetHeight()*.7)
-        self.status_frame.texture:SetTexture("Interface\\OPTIONSFRAME\\UI-OptionsFrame-NewFeatureIcon.PNG")
+        self.status_frame.texture:SetTexture(media.."EXC_POINT")
+        self.status_frame.texture:SetVertexColor(1,.8,0)
         self.item_texture:SetDesaturated(false)
         self:SetAlpha(1)
     end,
@@ -642,8 +702,40 @@ local set_status={
         self.status="not_in_list"
         self.status_frame:Hide()
         self.item_texture:SetDesaturated(true)
+        self.status_frame.texture:SetVertexColor(1,1,1)
         self:SetAlpha(.7)
     end,
+
+    ['pending']=function(self)
+        self.status="pending"
+        self.status_frame:Show()
+        self.status_frame:SetSize(self:GetWidth(),self:GetHeight())
+        self.status_frame.texture:SetTexture(media.."CIRCLE")
+        self.status_frame.texture:SetVertexColor(1,.7,0)
+        self.item_texture:SetDesaturated(false)
+        self:SetAlpha(1)
+    end,
+
+    ['won']=function(self)
+        self.status="won"
+        self.status_frame:Show()
+        self.status_frame:SetSize(self:GetWidth(),self:GetHeight())
+        self.status_frame.texture:SetTexture(media.."CIRCLE")
+        self.status_frame.texture:SetVertexColor(.1,.9,.1)
+        self.item_texture:SetDesaturated(false)
+        self:SetAlpha(1)
+    end,
+
+    ['lost']=function(self)
+        self.status="lost"
+        self.status_frame:Show()
+        self.status_frame:SetSize(self:GetWidth(),self:GetHeight())
+        self.status_frame.texture:SetTexture(media.."CIRCLE")
+        self.status_frame.texture:SetVertexColor(.9,.1,.1)
+        self.item_texture:SetDesaturated(false)
+        self:SetAlpha(1)
+    end,
+
 
     ["metatable"]={__index=function(table,key) return table["none"] end}
 }   
@@ -658,10 +750,14 @@ local function check_status(self)
         
     if (not player_index) or (not session.responses[player_index]) then
         status="not_in_list"
+    elseif session.responses[player_index].win then
+        status='won'
+    elseif purps:item_assigned_player(index) then
+        status='lost'
     elseif not session.responses[player_index].voted then
         status="vote_pending"
     else
-    
+        status='pending'
     end
 
     if status~=self.status then set_status[status](self) end
@@ -857,10 +953,22 @@ do
     right:SetScript("OnClick",function() toggle_frame(interface.session_main_frame) end)
     right:SetPoint("BOTTOMRIGHT",panel,"TOPRIGHT")
     
+    panel.close_window_button=ui:SquareButton(panel,30,30,"LEFT")
+    local close=panel.close_window_button
+    --close.icon:SetTexture(media.."CLOSE_BUTTON")
+    --close.icon:SetAllPoints()
+    close.icon:ClearAllPoints()
+    close.icon:SetAllPoints()
+    close.icon:SetTexCoord(0,1,0,1)
+    close:SetNormalTexture(media.."CLOSE_BUTTON_TEXTURE")
+    close:SetScript("OnClick",function() toggle_frame(interface.session_scroll_panel) end)
+    close:SetPoint("BOTTOM",panel,"TOP")
+
     local vote=interface.session_vote_frame
     vote:SetPoint("TOPRIGHT",panel,"TOPLEFT")
     vote:SetPoint("BOTTOMRIGHT",panel,"BOTTOMLEFT")
 
+    vote:SetParent(panel)
     vote:SetScript("OnDragStart",function() 
         panel:StartMoving()
     end)
