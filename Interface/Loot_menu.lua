@@ -2,6 +2,7 @@ local pants=PantsAddon
 pants.interface={}
 local interface=pants.interface
 local ui=LibStub('StdUi')
+local media="Interface\\AddOns\\Purps\\Media\\"
 
 local function update_scroll_XY_paras()
     local panel=pants.interface.session_scroll_panel
@@ -150,9 +151,9 @@ do
         frame.note_eb:ClearFocus()
 
         pants:send_response_update(response)
-        
     end)
     
+
 end
 
 local function show_tooltip(frame, show, itemLink)
@@ -174,10 +175,10 @@ local function show_tooltip_string(frame, show, str)
 	end
 end
 
-local media="Interface\\AddOns\\Purps\\Media\\"
 local has_note,has_no_note=media.."NOTE_FILLED",media.."NOTE_EMPTY"
 local regarded_icon,disregarded_icon=media.."EYE_OPEN",media.."EYE_CLOSED"
 local simc_filled,simc_empty=media.."SIMC_ICON",media.."SIMC_ICON"
+local assign_icon=media..'LOOT_BAG'
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
 local yellow_color,grey_color,white_color,red_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1},{r=1,g=1,b=1,a=1},{r=1,g=.2,b=.2,a=1}
 pants.interface.table_column_settings={
@@ -238,10 +239,10 @@ pants.interface.table_column_settings={
             --assign
             local win=response.win
             if (not win)  then 
-                response[9]=simc_filled
-                pants.interface.table_column_settings[10].color=grey_color
+                response[9]=assign_icon
+                pants.interface.table_column_settings[10].color=white_color
             else
-                response[9]=simc_filled
+                response[9]=assign_icon
                 pants.interface.table_column_settings[10].color=yellow_color
             end
 
@@ -479,7 +480,7 @@ pants.interface.table_column_settings={
 
     --assign icon
     {
-        name="Simc",
+        name="Give",
         sortable=false,
         width=42,
         align="CENTER",
@@ -529,6 +530,13 @@ do
     
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
         
+    --icon
+    frame.pants_icon=frame:CreateTexture(nil,'OVERLAY')
+    frame.pants_icon:SetTexture(media..'PANTS_ICON')
+    frame.pants_icon:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-5,-10)
+    frame.pants_icon:SetSize(50,50)
+    frame.pants_icon:SetAlpha(.5)
+
 end
 
 function interface:update_main_frame_parameters(initialize)
@@ -946,12 +954,12 @@ do
     panel.expand_left_button=ui:SquareButton(panel,30,30,"LEFT")
     local left=panel.expand_left_button
     left:SetScript("OnClick",function() toggle_frame(interface.session_vote_frame) end)
-    left:SetPoint("BOTTOMLEFT",panel,"TOPLEFT")
+    left:SetPoint("BOTTOMLEFT",panel,"TOPLEFT",0,-1)
     
     panel.expand_right_button=ui:SquareButton(panel,30,30,"RIGHT")
     local right=panel.expand_right_button
     right:SetScript("OnClick",function() toggle_frame(interface.session_main_frame) end)
-    right:SetPoint("BOTTOMRIGHT",panel,"TOPRIGHT")
+    right:SetPoint("BOTTOMRIGHT",panel,"TOPRIGHT",0,-1)
     
     panel.close_window_button=ui:SquareButton(panel,30,30,"LEFT")
     local close=panel.close_window_button
@@ -962,7 +970,7 @@ do
     close.icon:SetTexCoord(0,1,0,1)
     close:SetNormalTexture(media.."CLOSE_BUTTON_TEXTURE")
     close:SetScript("OnClick",function() toggle_frame(interface.session_scroll_panel) end)
-    close:SetPoint("BOTTOM",panel,"TOP")
+    close:SetPoint("BOTTOM",panel,"TOP",0,-1)
 
     local vote=interface.session_vote_frame
     vote:SetPoint("TOPRIGHT",panel,"TOPLEFT")
