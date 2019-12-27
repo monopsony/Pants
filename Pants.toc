@@ -6,7 +6,7 @@
 ## OptionalDeps: Simulationcraft
 
 libs.xml
-Purps.lua
+Core.lua
 Utils.lua
 Session.lua
 Comms.lua
