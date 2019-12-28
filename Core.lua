@@ -144,6 +144,15 @@ local chat_commands={
 		self:send_end_session()
 	end,
 	
+	["history"]=function(self)
+		local hf=self.interface.history_frame
+		if hf:IsShown() then hf:Hide() else hf:Show() end
+		for k,v in pairs(self.para.history) do self:clearEmptyTables(v) end
+		self.interface:reset_history_dds()
+		self.interface:update_history_frame_paras()
+		self.interface:apply_history_dds(true,false,false)
+	end,
+
 	['toggle']=function(self)
 		local f=PantsAddon.interface.session_scroll_panel
 		if f:IsShown() then f:Hide() else f:Show() end

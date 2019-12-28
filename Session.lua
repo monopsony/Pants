@@ -154,6 +154,7 @@ function pants:get_equipped_items(session_index)
 end
 
 function pants:apply_end_session()
+    if self.active_session then pants:archive_current_session() end
     self.active_session=false
     wipe(self.current_session)
     wipe(self.simc_strings)
@@ -202,7 +203,10 @@ function pants:confirm_pending_item_assignment()
 end
 
 function pants:item_assigned_player(item_index)
-    if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return false end 
+    if (not item_index) 
+    or (not self.current_session) 
+    or (not self.current_session[item_index])
+    or (not self.current_session[item_index].resposnes) then return false end 
     for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1],v.class end end
     return false
 end

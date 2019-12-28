@@ -5,12 +5,18 @@ local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 pants.colors={
     ["epic"]={0.64,0.21,0.93},
     ["epic_hex"]="136207",
+    ['yellow_hex']=''
 }
 
 pants.predefined_messages={
-    ["name"]="|cffa335eepants|r",
+    ["name"]="|cffa335eePants|r",
     ["add_items_none_found"]="No items were found. Type '/pants add' followed by shift-clicking relevant items to add them to the session.",
-    ["help_message"]=function() return ("This is the %s help message,"):format(pants.predefined_messages.name) end,
+    ["help_message"]='available commands:\n'
+        ..'|cffffff00help|r Displays this message\n'
+        ..'|cffffff00toggle|r Show/hides main frame\n'
+        ..'|cffffff00history|r Show/hides history frame\n'
+        ..'|cffffff00add|r Adds items to the session (shift-click links)\n'
+        ..'|cffffff00council|r Shows information about the current council',
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
@@ -440,3 +446,14 @@ function pants:get_item_link_slot(slot)
     return links
 end
 
+
+function pants:clearEmptyTables(t)
+    for k,v in pairs(t) do
+        if type(v) == 'table' then
+            self:clearEmptyTables(v)
+            if next(v) == nil then
+                t[k] = nil
+            end
+         end
+     end
+end

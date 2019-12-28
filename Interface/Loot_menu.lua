@@ -635,6 +635,7 @@ function interface:refill_vote_frame()
     local index=pants:name_index_in_session(pants.full_name,item_index)
     
     if pants.current_session and pants.current_session[item_index] then
+        if not pants.current_session[item_index].responses then return end
         local response=pants.current_session[item_index].responses[index]
         if not response then
             --youre not allowed to respond here
@@ -780,7 +781,7 @@ local function check_status(self)
     if not index then return 'none' end
     local session,status,player_index=pants.current_session[index],"none",pants:name_index_in_session(pants.full_name,index)
 
-    if (not session) or (not session.responses) then return 'none'  end
+    if (not session) or (not session.responses) then set_status['none'](self); return end
         
     if (not player_index) or (not session.responses[player_index]) then
         status="not_in_list"
@@ -899,10 +900,15 @@ end
 
 function interface:apply_selected_item()
     
-    if (pants.active_session) and (self.currently_selected_item) and (pants.current_session) then
+    if (self.currently_selected_item)
+        and (pants.current_session) 
+        and (pants.current_session) 
+        and (pants.current_session[self.currently_selected_item])
+        and (pants.current_session[self.currently_selected_item].item_info)  
+        then
     
         local item_index=self.currently_selected_item or nil
-        if not item_index then return end 
+        if (not item_index) then return end 
         --TBA add error message
         
         local para=pants.para
@@ -934,8 +940,13 @@ function interface:apply_selected_item()
         frame.text_assigned:SetText('')
     end
     
-    self:table_reload_item()
-    self:refill_vote_frame()
+    if pants.active_session then
+        self.session_main_frame.raid_table:Show()
+        self:table_reload_item()
+        self:refill_vote_frame()
+    else
+        self.session_main_frame.raid_table:Hide()
+    end
 end
 
 local function toggle_frame(frame)

@@ -19,9 +19,11 @@ function pants:archive_current_session()
 	if not h[year][month][monthDay] then h[year][month][monthDay]={} end
 	local h=h[year][month][monthDay]
 	h[#h+1]=session
+	interface:fill_history_table()
 end
 
 pants.current_date = C_DateAndTime.GetCurrentCalendarTime()
+pants.interface.queued_history_info={}
 local week_days={'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday',}
 local month_names={'January','February','March','April','May','June','July','August','September','October','November','December',}
 
@@ -46,16 +48,64 @@ function pants:load_archived_session(year,month,monthDay,index)
 	self.interface:check_items_status()
 
 	self.interface.session_scroll_panel:Show()
+	self.interface:check_selected_item()
+	self.interface:apply_selected_item()
+end
+
+function open_session_from_queued_history()
+	local qhi=pants.interface.queued_history_info
+	if #qhi<4 then return end
+	pants:load_archived_session(unpack(qhi))
+end
+
+function pants:history_clear_all_shown()
+	local data=self.interface.history_frame.table.data
+	for k,v in pairs(data) do
+		self:clear_archived_session(v.year,v.month,v[1],v.index,true)
+	end
+	interface:reset_history_dds()
+	interface:fill_history_table()
+end
+
+function pants:clear_archived_session(year,month,monthDay,index,skip_filling)
+	local h=self.para.history
+	if (not year) or (not h[year])
+	or (not month) or (not h[year][month])
+	or (not monthDay) or (not h[year][month][monthDay])
+	or (not index) or (not h[year][month][monthDay][index]) 
+	then return end
+
+	h[year][month][monthDay][index]=nil
+	if skip_filling then return end
+	interface:fill_history_table()
+end
+
+function clear_session_from_queued_history()
+	local qhi=pants.interface.queued_history_info
+	if #qhi<4 then return end
+	pants:clear_archived_session(unpack(qhi))
 end
 
 interface.history_frame=ui:PanelWithTitle(UIParent,400,400,'Pants history',70,30)
 local hf=pants.interface.history_frame
+hf:Hide()
 
 local function update_XY_paras()
     local hf=pants.interface.history_frame
     local x,y=hf:GetLeft(),hf:GetTop()
     pants.para.history_frame_pos[1]=x
     pants.para.history_frame_pos[2]=y
+end
+
+local function adapt_n_rows_to_height()
+    local tbl=interface.history_frame.table
+    
+    local h=tbl:GetHeight()
+        
+    local n=floor(h/20)
+    
+    tbl:SetDisplayRows(0,0)
+    tbl:SetDisplayRows(n,20)
 end
 
 function interface:update_history_frame_paras()
@@ -65,6 +115,8 @@ function interface:update_history_frame_paras()
     hf:SetWidth(para.history_frame_width)
     hf:ClearAllPoints()
     hf:SetPoint('TOPLEFT',UIParent,'BOTTOMLEFT',x,y)
+
+    adapt_n_rows_to_height()
 end
 
 do --make movable
@@ -82,7 +134,7 @@ do --make movable
 	end)  
 end 
 
---create sizer
+--create sizer & closer
 do 
 	hf.sizer=ui:Frame(hf,15,15)
 	local sizer=hf.sizer
@@ -110,6 +162,22 @@ do
 
     hf:SetMinResize(460,300)
     hf:SetMaxResize(2000,2000)
+
+    hf.close_window_button=ui:SquareButton(hf,25,25,"LEFT")
+    local close=hf.close_window_button
+    close.icon:ClearAllPoints()
+    close.icon:SetAllPoints()
+    close.icon:SetTexCoord(0,1,0,1)
+    close:SetNormalTexture(media.."CLOSE_BUTTON_TEXTURE")
+    close:SetScript("OnClick",function() hf:Hide() end)
+    close:SetPoint("TOPLEFT",hf,"TOPLEFT",5,-5)
+end
+
+function interface:reset_history_dds()
+	hf.year_dd:SetValue(nil)
+	hf.month_dd:SetValue(nil)
+	hf.day_dd:SetValue(nil)
+	self:apply_history_dds(true,true,true)
 end
 
 --create dropdowns
@@ -129,22 +197,21 @@ do
 	hf.day_dd.label=ui:AddLabel(hf.day_dd,hf.day_dd,'Day')
 end
 
+--create clear all button
+do
+	hf.clear_shown_btn=ui:Button(hf,100,35,"Clear shown")	
+	local btn=hf.clear_shown_btn
+	btn:SetPoint('TOPLEFT',hf.year_dd,'BOTTOMLEFT',0,-15)
+	btn:SetScript('OnClick',function()
+		pants:create_popup_confirm('|cffff0000delete all entries|r currently shown in the history table',pants.history_clear_all_shown)
+	end)
+
+end
+
 --make table
 do
 
-
 	interface.history_table_settings={
-	    --Updater
-	    {
-	        name="",
-	        width=1,
-	        align="LEFT",
-	        index=0,
-	        format=function(_,response)
-	        end,
-	        
-	    },
-
 	    --Name
 	    {
 	        name="",
@@ -175,35 +242,60 @@ do
 	        sortable=true,
 	    }, 
 
-	    -- --assign icon
-	    -- {
-	    --     name="Give",
-	    --     sortable=false,
-	    --     width=42,
-	    --     align="CENTER",
-	    --     index=9,
-	    --     format="icon",
-	    --     events={
-	    --         OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-	    --             if not pants.currently_in_council then pants:send_user_message('not_in_council','assign winners'); return end
-	    --             local item_index=pants.interface.currently_selected_item or nil
-	    --             if not item_index then return end 
-	    --             if rowData.win then return end
-	    --             local name,class=rowData[1],rowData.class
-	    --             local hex=pants:class_to_hex(class)
-	    --             pants.pending_item_assignment={item_index,name}
-	    --             pants:create_popup_confirm( ('assign this item to |c%s%s|r'):format(hex,name),pants.confirm_pending_item_assignment)
-	    --         end,
-	    --         }, 
-	    --     },
+	    {
+	        name="Show",
+	        sortable=false,
+	        width=42,
+	        align="CENTER",
+	        index=4,
+	        format="icon",
+	        events={
+				OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+					local qhi=pants.interface.queued_history_info
+					wipe(qhi)     
+					qhi[1]=rowData.year
+					qhi[2]=rowData.month
+					qhi[3]=rowData[1]
+					qhi[4]=rowData.index
+					pants:create_popup_confirm('|cffff0000overwrite any ongoing session|r and open this session from history',open_session_from_queued_history)
+				end,
+	            }, 
+        },
+
+	    {
+	        name="Clear",
+	        sortable=false,
+	        width=42,
+	        align="CENTER",
+	        index=5,
+	        format="icon",
+	        events={
+				OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+					local qhi=pants.interface.queued_history_info
+					wipe(qhi)     
+					qhi[1]=rowData.year
+					qhi[2]=rowData.month
+					qhi[3]=rowData[1]
+					qhi[4]=rowData.index
+					pants:create_popup_confirm( ('|cffff0000delete|r this session (%s/%s/%s) from history'):format(rowData.year,rowData.month,rowData[1])
+						,clear_session_from_queued_history)
+				end,
+	            }, 
+        },
 	}
+
 	local table_column_default=interface.history_table_settings
 
-	local function table_entry_from_session(session)
+	local function table_entry_from_session(index,session)
 		local tbl,date={},session.date
 		tbl[1]=session.date.monthDay
 		tbl[2]=session.date.weekday
 		tbl[3]= ('%02d:%02d'):format(date.hour,date.minute)
+		tbl[4]= media..'EYE_OPEN'
+		tbl[5]=media..'CLOSE_BUTTON_TEXTURE'
+		tbl.index=index
+		tbl.year=date.year
+		tbl.month=date.month
 		return tbl
 	end
 
@@ -212,16 +304,16 @@ do
 		local data,h={},pants.para.history
 		local year,month,day=hf.year_dd:GetValue(),hf.month_dd:GetValue(),hf.day_dd:GetValue()
 
-		if (not year) or (not month) or (not h[year]) or (not h[year][month]) then return end
+		if (not year) or (not month) or (not h[year]) or (not h[year][month]) then hf.table:SetData(data); return end
 		if (not day) or (not h[year][month][day]) then
 			for k,v in pairs(h[year][month]) do
 				for k1,v1 in pairs(v) do 
-					data[#data+1]=table_entry_from_session(v1)
+					data[#data+1]=table_entry_from_session(k1,v1)
 				end
 			end
 		else
 			for k,v in pairs(h[year][month][day]) do 
-				data[#data+1]=table_entry_from_session(v)
+				data[#data+1]=table_entry_from_session(k,v)
 			end
 		end
 		hf.table:SetData(data)
@@ -229,7 +321,7 @@ do
 
 	hf.table=ui:ScrollTable(hf,table_column_default,20,20)
 	local tbl=hf.table
-	tbl:SetPoint('TOPLEFT',hf.year_dd,'BOTTOMLEFT',0,-35)
+	tbl:SetPoint('TOPLEFT',hf.clear_shown_btn,'BOTTOMLEFT',0,-35)
 	tbl:SetPoint('BOTTOMRIGHT',hf,'BOTTOMRIGHT',-10,15)
 end
 
@@ -269,7 +361,8 @@ do
 			local month=hf.month_dd:GetValue()
 			if (not year)or (not month) then return end
 			for k,v in pairs(h[year][month]) do
-				local day_name=(v[1] and week_days[v[1].date.weekday]) or 'UNKNOWN'
+				local _,n=next(v)
+				local day_name=(n and week_days[n.date.weekday]) or 'UNKNOWN'
 				d_tbl[#d_tbl+1]={text=('%s / %s'):format(k,day_name),value=k}
 			end
 			hf.day_dd:SetOptions(d_tbl)
