@@ -30,6 +30,12 @@ local defaults={
 		vote_frame_height=200,
 		vote_frame_width=200,
 
+		history_frame_pos={500,500},
+		history_frame_width=500,
+		history_frame_height=500,
+
+		popup_confirm_pos=nil, --compared to TOP,TOP
+
 		session_paras={
 			response_names={[0]="Waiting for response...",[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass"},
 			response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
@@ -49,7 +55,9 @@ local defaults={
 				[8]='',
 				[9]='',
 			}
-		}
+		},
+
+		history={},
 
 	},-- end of profile
 }--end of defaults
@@ -99,6 +107,7 @@ local chat_commands={
 		end
 		
 		self.interface.session_scroll_panel:Show()
+		self.interface:check_items_status()
 	end,
 
 	["help"]=function(...)

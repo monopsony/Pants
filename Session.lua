@@ -85,7 +85,7 @@ function pants:generate_group_member_list(item_info)
 end
 
 function pants:start_session()
-    if not self.currently_in_council then pants:send_user_message('not_in_council','start sessions'); return end
+    if (not self.currently_in_council) then pants:send_user_message('not_in_council','start sessions'); return end
     local tbl=self.current_session
     if (not tbl) or (#tbl==0) then 
         self:send_user_message("add_items_none_found")
@@ -156,6 +156,7 @@ end
 function pants:apply_end_session()
     self.active_session=false
     wipe(self.current_session)
+    wipe(self.simc_strings)
     pants.interface:apply_session_to_scroll()
     pants.interface:apply_selected_item()
     self.interface.session_scroll_panel:Hide()
@@ -193,8 +194,16 @@ function pants:apply_item_assignment(data)
     self.interface:update_assigned_text()
 end
 
+function pants:confirm_pending_item_assignment()
+    if not self.pending_item_assignment then return end
+    local item_index,name=unpack(self.pending_item_assignment)
+    self:send_item_assignment(item_index,name)
+    wipe(self.pending_item_assignment)
+end
+
 function pants:item_assigned_player(item_index)
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return false end 
     for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1],v.class end end
     return false
 end
+

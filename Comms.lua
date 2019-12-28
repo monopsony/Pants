@@ -113,7 +113,6 @@ pants.registered_comms={
 }
 
 
-
 local registered_comms=pants.registered_comms
 
 function pants:send_raid_comm(prefix,data)
@@ -152,7 +151,6 @@ function pants:send_new_session_item(i)
 	local s=self:serialize_compress_encode(session[i])
 	self:send_raid_comm("pantsSAdd",s)
 end
-
 
 function pants:send_response_update(response)
 	if not response or not (type(response)=="table") then return end

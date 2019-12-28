@@ -2,7 +2,7 @@ local pants=PantsAddon
 pants.interface={}
 local interface=pants.interface
 local ui=LibStub('StdUi')
-local media="Interface\\AddOns\\Purps\\Media\\"
+local media="Interface\\AddOns\\Pants\\Media\\"
 
 local function update_scroll_XY_paras()
     local panel=pants.interface.session_scroll_panel
@@ -39,7 +39,7 @@ do
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
-    frame:SetClipsChildren(true)
+    --frame:SetClipsChildren(true)
 
 
     frame.sizer_frame=ui:Frame(frame,15,15)
@@ -155,6 +155,7 @@ do
         frame.note_eb:ClearFocus()
 
         pants:send_response_update(response)
+        pants:throttle_action('send_button')
     end)
     
 
@@ -441,7 +442,10 @@ pants.interface.table_column_settings={
 
                 local simc_string=pants.simc_strings[name]
                 if (not simc_string) or (simc_string=="failed") then 
-                    pants:send_simc_request(name)
+                    if pants.throttle_timers.simc_ask.allowed then 
+                        pants:send_simc_request(name)
+                        pants:throttle_action('simc_ask')
+                    end
                     return
                 elseif simc_string=="pending" then return end
 
@@ -496,8 +500,10 @@ pants.interface.table_column_settings={
                 local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 if rowData.win then return end
-                local name=rowData[1]
-                pants:send_item_assignment(item_index,name)
+                local name,class=rowData[1],rowData.class
+                local hex=pants:class_to_hex(class)
+                pants.pending_item_assignment={item_index,name}
+                pants:create_popup_confirm( ('assign this item to |c%s%s|r'):format(hex,name),pants.confirm_pending_item_assignment)
             end,
             }, 
         },
@@ -531,7 +537,7 @@ do
     tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-75)
     tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-75)
     tbl:EnableSelection(true)
-    
+    tbl:SetClipsChildren(true)
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
         
     --icon
@@ -540,6 +546,21 @@ do
     frame.pants_icon:SetPoint('TOPRIGHT',frame,'TOPRIGHT',-5,-10)
     frame.pants_icon:SetSize(50,50)
     frame.pants_icon:SetAlpha(.5)
+
+
+    --council buttons
+    frame.start_session_button=ui:Button(frame,105,25,'Start session')
+    frame.start_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',30,-1)
+    frame.start_session_button:SetScript('OnClick',function()
+        pants:create_popup_confirm('start the session',pants.start_session)
+    end)
+
+    --council buttons
+    frame.end_session_button=ui:Button(frame,105,25,'End session')
+    frame.end_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',140,-1)
+    frame.end_session_button:SetScript('OnClick',function()
+        pants:create_popup_confirm('end the session',pants.send_end_session)
+    end)
 
 end
 
@@ -631,7 +652,8 @@ function interface:refill_vote_frame()
         vote.note_eb:SetText("")
     end
     
-    vote.note_eb:ClearFocus()  
+    vote.note_eb:ClearFocus()
+    vote.send_button:Enable()
 end
 
 local help_table,wipe,pairs={},table.wipe,pairs
@@ -755,10 +777,10 @@ setmetatable(set_status,set_status.metatable)
 
 local function check_status(self)
     local index=self.session_index
-    if not index then return end
+    if not index then return 'none' end
     local session,status,player_index=pants.current_session[index],"none",pants:name_index_in_session(pants.full_name,index)
 
-    if (not session) or (not session.responses) then return end
+    if (not session) or (not session.responses) then return 'none'  end
         
     if (not player_index) or (not session.responses[player_index]) then
         status="not_in_list"
@@ -1077,8 +1099,6 @@ do
     bl:Show()
 end
 
-
-
 function interface:refresh_sort_raid_table()
     local tbl=self.raid_table
     tbl:Refresh()
@@ -1116,6 +1136,28 @@ function interface:reset_items_status()
     end
 end
 
+pants.throttle_timers={
+    send_button={
+        time=1,
+        expire=function() PantsAddon.interface.session_vote_frame.send_button:Enable() end,
+        start=function() PantsAddon.interface.session_vote_frame.send_button:Disable() end,
+    },
 
+    simc_ask={
+        time=.5,
+        allowed=true,
+        expire=function() PantsAddon.throttle_timers.simc_ask.allowed=true end,
+        start=function() PantsAddon.throttle_timers.simc_ask.allowed=false end,
+    },
+}
 
-
+function pants:throttle_action(s)
+    if (not s) or (not self.throttle_timers[s]) then return end
+    local tbl=self.throttle_timers[s]
+    local start_time,dur=GetTime(),tbl.time
+    C_Timer.After(dur+.05,function()
+        if GetTime()-start_time<dur then return end
+        tbl.expire()
+    end)
+    tbl.start()
+end

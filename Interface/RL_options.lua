@@ -1,6 +1,5 @@
 local pants=PantsAddon
 local interface=pants.interface
-
 local gui = LibStub("AceGUI-3.0")
 local AceConfig=LibStub("AceConfig-3.0")
 
