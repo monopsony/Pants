@@ -11,6 +11,7 @@ Utils.lua
 Session.lua
 Comms.lua
 simc.lua
+QoL.lua
 
 Interface\Loot_menu.lua
 Interface\Options.lua
@@ -18,4 +19,5 @@ Interface\RL_options.lua
 Interface\ML_options.lua
 Interface\Other.lua
 Interface\History.lua
+
 

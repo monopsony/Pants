@@ -34,6 +34,10 @@ local defaults={
 		history_frame_width=500,
 		history_frame_height=500,
 
+		qol_frame_pos={500,500},
+		qol_frame_width=500,
+		qol_frame_height=500,
+
 		popup_confirm_pos=nil, --compared to TOP,TOP
 
 		session_paras={
@@ -79,6 +83,7 @@ function pants:OnInitialize()
 	self.interface:update_scroll_parameters(true)
 	self.interface:update_main_frame_parameters(true)
 	self.interface:update_vote_frame_parameters(true)
+	self.interface:update_qol_frame_paras(true)
 	
 	self.interface:reset_items_status()
 	self.interface.session_scroll_panel:Hide()
@@ -155,6 +160,11 @@ local chat_commands={
 
 	['toggle']=function(self)
 		local f=PantsAddon.interface.session_scroll_panel
+		if f:IsShown() then f:Hide() else f:Show() end
+	end,
+
+	['quick']=function(self)
+		local f=PantsAddon.interface.qol_frame
 		if f:IsShown() then f:Hide() else f:Show() end
 	end,
 

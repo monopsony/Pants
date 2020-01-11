@@ -16,7 +16,8 @@ pants.predefined_messages={
         ..'|cffffff00toggle|r Show/hides main frame\n'
         ..'|cffffff00history|r Show/hides history frame\n'
         ..'|cffffff00add|r Adds items to the session (shift-click links)\n'
-        ..'|cffffff00council|r Shows information about the current council',
+        ..'|cffffff00council|r Shows information about the current council\n'
+        ..'|cffffff00quick|r Toggles the Quick pants window\n',
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
@@ -342,7 +343,7 @@ end
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS
 function pants:class_to_hex(class)
     local c=RAID_CLASS_COLORS[class]
-    if not c then return '|cffffffff' end
+    if not c then return 'ffffffff' end
     return c:GenerateHexColor()
 end
 
@@ -446,7 +447,6 @@ function pants:get_item_link_slot(slot)
     return links
 end
 
-
 function pants:clearEmptyTables(t)
     for k,v in pairs(t) do
         if type(v) == 'table' then
@@ -456,4 +456,19 @@ function pants:clearEmptyTables(t)
             end
          end
      end
+end
+
+
+function pants:are_you_ML()
+    local para=self.current_rl_paras
+    if (not para) or (not para.council) then return false end
+
+    for k,v in pairs(para.council) do 
+        if (type(v)=='string') and (v~='') then 
+            local name=Ambiguate(v,'none')
+            if UnitExists(name) and UnitInRaid(name) then
+                return UnitIsUnit(name,'player') 
+            end
+        end
+    end
 end

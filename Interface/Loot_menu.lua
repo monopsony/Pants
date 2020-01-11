@@ -161,7 +161,7 @@ do
 
 end
 
-local function show_tooltip(frame, show, itemLink)
+function interface.show_tooltip(frame, show, itemLink)
 	if show then
 		GameTooltip:SetOwner(frame,"ANCHOR_RIGHT");
 		GameTooltip:SetHyperlink(itemLink)
@@ -170,6 +170,7 @@ local function show_tooltip(frame, show, itemLink)
 		GameTooltip:Hide();
 	end
 end
+local show_tooltip=interface.show_tooltip
 
 local function show_tooltip_string(frame, show, str)
 	if show then

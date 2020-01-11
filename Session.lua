@@ -193,6 +193,8 @@ function pants:apply_item_assignment(data)
     
     self.interface:check_items_status()
     self.interface:update_assigned_text()
+    self:qol_generate_update_table()
+
 end
 
 function pants:confirm_pending_item_assignment()
@@ -206,7 +208,7 @@ function pants:item_assigned_player(item_index)
     if (not item_index) 
     or (not self.current_session) 
     or (not self.current_session[item_index])
-    or (not self.current_session[item_index].resposnes) then return false end 
+    or (not self.current_session[item_index].responses) then return false end 
     for k,v in pairs(self.current_session[item_index].responses) do if v.win then return v[1],v.class end end
     return false
 end
