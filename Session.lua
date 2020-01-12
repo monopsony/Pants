@@ -153,14 +153,26 @@ function pants:get_equipped_items(session_index)
     return links
 end
 
+local wipe_keys={
+    'current_session',
+    'simc_strings',
+    'items_recently_looted',
+    'pending_looted_items',
+}
+
 function pants:apply_end_session()
     if self.active_session then pants:archive_current_session() end
     self.active_session=false
-    wipe(self.current_session)
-    wipe(self.simc_strings)
+
+    --wipe tables
+    for i,v in ipairs(wipe_keys) do
+        if self[v] then wipe(self[v]) end
+    end
+
     pants.interface:apply_session_to_scroll()
     pants.interface:apply_selected_item()
     self.interface.session_scroll_panel:Hide()
+
 end
 
 function pants:apply_rl_paras()
@@ -183,6 +195,9 @@ function pants:apply_item_assignment(data)
     if not index then return end
 
     for k,v in pairs(self.current_session[item_index].responses) do 
+        --makes sure that you dont get prompted to trade items that you looted then got assigned
+        if UnitIsUnit(v[1],'player') then pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) end
+
         if k==index then v.win=true else v.win=false end
     end
 
@@ -194,7 +209,6 @@ function pants:apply_item_assignment(data)
     self.interface:check_items_status()
     self.interface:update_assigned_text()
     self:qol_generate_update_table()
-
 end
 
 function pants:confirm_pending_item_assignment()
@@ -213,3 +227,19 @@ function pants:item_assigned_player(item_index)
     return false
 end
 
+function pants:find_ML()
+    local para=self.current_rl_paras
+    if (not para) or (not para.council) then self:send_user_message('no_rl_paras'); return end
+
+    for k,v in pairs(para.council) do 
+        if (type(v)=='string') and (v~='') then 
+            local name=Ambiguate(v,'none')
+
+            if UnitInRaid(name) then
+                local _,class=UnitClass(name)
+                return name,class
+            end
+        end
+    end
+    return false
+end

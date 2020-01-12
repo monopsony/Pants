@@ -21,6 +21,7 @@ pants.predefined_messages={
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
+    ['item_not_in_bags']=function(a) return ("Tradable version of %s not found in bags"):format(a or "N/A") end,
     ['generic']=function(a) return tostring(a) end,
 }
 

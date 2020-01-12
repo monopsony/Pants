@@ -110,6 +110,13 @@ pants.registered_comms={
 		if name~=pants.full_name then return end 
 		pants:send_simc_string()
 	end,
+
+	["pantsItemLooted"]=function(data,_,sender)
+		if not pants:are_you_ML() then return end
+		local s=pants:decode_decompress(data)
+		pants:add_to_looted_items(s,sender)
+		pants:qol_generate_update_table()
+	end,	
 }
 
 
@@ -208,3 +215,8 @@ function pants:send_item_assignment(item_index,name)
 	self:send_raid_comm("pantsIAssign",s)
 end
 
+function pants:send_item_looted(itemLink)
+	if not itemLink then return end
+	local s=self:compress_encode(itemLink)
+	self:send_raid_comm('pantsItemLooted',s)
+end

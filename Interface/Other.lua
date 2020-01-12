@@ -53,6 +53,7 @@ end
 
 interface.qol_frame=ui:PanelWithTitle(UIParent,400,200,'Quick pants',70,30)
 local qol=interface.qol_frame
+qol:Hide()
 
 do --make movable
 	qol:SetPoint('TOP',UIParent,'TOP')
@@ -166,6 +167,7 @@ do
 		f.button=ui:Button(f,qol_paras.btn_width,qol_paras.btn_height,'N/A')
 		f.button:SetSize(qol_paras.btn_width, qol_paras.btn_height)
 		f.button:SetPoint('RIGHT',f,'RIGHT',-10,0)
+		f.button:SetScript('OnClick',function() pants:qol_perform_quick_action(f) end)
 
 		--pants.interface.show_tooltip(frame,_,data.itemLink)
     	
@@ -189,6 +191,30 @@ do
 			frame.texture:SetTexture(itemTexture)
 			frame.texture_frame.tooltip.link=data.itemLink
 		end
+
+		
+		if data.mode =='trade_ML' then
+			local color=pants:class_to_hex(data.class)
+			frame.text:SetText(('Trade to |c%s%s|r (ML)'):format(color,pants:remove_realm(data.name)))
+
+			frame.button:SetText('Trade')
+
+			local _,_,_,_,_,_,_,_,_,itemTexture=GetItemInfo(data.itemLink)
+			frame.texture:SetTexture(itemTexture)
+			frame.texture_frame.tooltip.link=data.itemLink
+		end
+
+		if data.mode == 'to_add' then
+			local color=pants:class_to_hex(data.class)
+			frame.text:SetText(('Looted by |c%s%s|r'):format(color,pants:remove_realm(data.name)))
+
+			frame.button:SetText('Add item')
+
+			local _,_,_,_,_,_,_,_,_,itemTexture=GetItemInfo(data.itemLink)
+			frame.texture:SetTexture(itemTexture)
+			frame.texture_frame.tooltip.link=data.itemLink
+		end
+
 
 		return frame
 	end

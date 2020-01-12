@@ -4,7 +4,7 @@ if not StdUi then
 	return
 end
 
-local module, version = 'ScrollTable', 5;
+local module, version = 'ScrollTable', 10;
 if not StdUi:UpgradeNeeded(module, version) then
 	return
 end

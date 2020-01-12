@@ -5,6 +5,9 @@ local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
 local defaults={
 	profile={
+
+		quick_follow=true,
+
 		scroll_item_size={40,40},
 		scroll_item_default_icon=136207,
 		tertiary_stats_delimiter="//",
@@ -172,6 +175,7 @@ local chat_commands={
 		local para=self.current_rl_paras
 		if (not para) or (not para.council) then self:send_user_message('no_rl_paras'); return end
 		local s=('Council members\n%s  %s  %s\n'):format('ID','Name','Status')  --'ID','Name','Status')
+		local found_ML=false
 		for k,v in pairs(para.council) do 
 			if (type(v)=='string') and (v~='') then 
 				local name=Ambiguate(v,'none')
@@ -179,7 +183,12 @@ local chat_commands={
 					or ((not UnitIsConnected(name)) and '|cffffff00Offline|r')
 					or '|cff00ff00Connected|r'
 
-				s=('%s%s  %s  %s\n'):format(s,k,v,status)
+				if UnitInRaid(name) and not found_ML then
+					s=('%s%s  %s  %s (ML)\n'):format(s,k,v,status)
+					found_ML=true
+				else
+					s=('%s%s  %s  %s\n'):format(s,k,v,status)
+				end
 			end
 		end
 		pants:send_user_message('generic',s)
