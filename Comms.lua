@@ -82,6 +82,7 @@ pants.registered_comms={
 	end,
 	
 	["pantsSEnd"]=function(data,_,sender)
+		pants:send_user_message('session_closed',sender)
 		pants:apply_end_session()
 	end,
 

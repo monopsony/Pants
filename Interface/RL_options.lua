@@ -19,7 +19,11 @@ args["council_1"]={
     name="1",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[1]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -33,7 +37,11 @@ args["council_2"]={
     name="2",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[2]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -47,7 +55,11 @@ args["council_3"]={
     name="3",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[3]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -62,7 +74,11 @@ args["council_4"]={
     name="4",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[4]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -76,7 +92,11 @@ args["council_5"]={
     name="5",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[5]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -90,7 +110,11 @@ args["council_6"]={
     name="6",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[6]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -104,7 +128,11 @@ args["council_7"]={
     name="7",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[7]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -118,7 +146,11 @@ args["council_8"]={
     name="8",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[8]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 
@@ -133,7 +165,11 @@ args["council_9"]={
     name="9",
     set=function(self,name)
             if not name then return end
+            if not (name:gsub(' ','')=='') then
+                name=pants:convert_to_full_name(name)
+            end
             pants.para.rl_paras.council[9]=name
+            
             pants:send_rl_paras()
         end,
     get=function(self) 

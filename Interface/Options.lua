@@ -23,8 +23,30 @@ pants.optionsTable = {
 			args={},
 		},
 
+		personal={
+			name='Personal',
+			type='group',
+			args={},
+		},		
+
 	}
 }
 
-AceConfig:RegisterOptionsTable('pants',pants.optionsTable)
-AceConfigDialog:AddToBlizOptions('pants','pants')
+AceConfig:RegisterOptionsTable('Pants',pants.optionsTable)
+AceConfigDialog:AddToBlizOptions('Pants','Pants')
+
+local args=pants.optionsTable.args.personal.args
+
+args["follow_unit_prot"]={
+    type="toggle",
+    order=12,
+    name="Quick follow",
+    desc='When active, automatically follows relevant people for quick actions (e.g. trading to the ML)',
+    set=function(self,value)
+            pants.para.quick_follow=value
+
+        end,
+    get=function(self) 
+            return pants.para.quick_follow
+        end,
+}  

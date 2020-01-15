@@ -4,7 +4,10 @@ pants.simc_strings={
 }
 --setmetatable( pants.simc_strings, {__index=function(self,index) return '' end} )
 
-local Simulationcraft=LibStub.libs["AceAddon-3.0"]:GetAddon("Simulationcraft")
+local Simulationcraft
+if LibStub.libs['AceAddon-3.0'].addons['Simulationcraft'] then
+	Simulationcraft=LibStub.libs["AceAddon-3.0"]:GetAddon("Simulationcraft")
+end
 
 function pants:generate_simc_string()
     if not Simulationcraft then return end
@@ -16,6 +19,7 @@ end
 
 function pants:send_simc_string()
     local sim=self:generate_simc_string()
+	if not sim then return end
     local s=self:compress_encode(sim)
     self:send_raid_comm("pantsSimc",s)
 end

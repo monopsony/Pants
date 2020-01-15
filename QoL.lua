@@ -118,6 +118,7 @@ function pants:qol_perform_quick_action(frame)
         end
         if not bag then self:send_user_message('item_not_in_bags',itemLink); return end
 
+        name=Ambiguate(name,'none')
         if self.para.quick_follow then FollowUnit(name) end
 
         --initiate trade

@@ -161,7 +161,9 @@ local wipe_keys={
 }
 
 function pants:apply_end_session()
-    if self.active_session then pants:archive_current_session() end
+    if self.active_session then 
+        pants:archive_current_session() 
+    end
     self.active_session=false
 
     --wipe tables

@@ -17,11 +17,13 @@ pants.predefined_messages={
         ..'|cffffff00history|r Show/hides history frame\n'
         ..'|cffffff00add|r Adds items to the session (shift-click links)\n'
         ..'|cffffff00council|r Shows information about the current council\n'
-        ..'|cffffff00quick|r Toggles the Quick pants window\n',
+        ..'|cffffff00quick|r Toggles the Quick pants window\n'
+        ..'|cffffff00opt|r Open the options menu (also available in Interface/Addons)\n',
     ["raid_ping"]=function(a,b) return ("%s pinged the %s."):format(a or "N/A",b:lower()) end,
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
     ['item_not_in_bags']=function(a) return ("Tradable version of %s not found in bags"):format(a or "N/A") end,
+    ['session_closed']=function(a) return ("Active session was ended by %s."):format(a or "N/A") end,
     ['generic']=function(a) return tostring(a) end,
 }
 

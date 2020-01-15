@@ -120,7 +120,6 @@ local chat_commands={
 
 	["help"]=function(...)
 		pants:send_user_message("help_message")
-		
 	end,
 	
 	["test_table"]=function(...)
@@ -192,6 +191,11 @@ local chat_commands={
 			end
 		end
 		pants:send_user_message('generic',s)
+	end,
+
+	['opt']=function(self)
+		local AceConfigDialog=LibStub("AceConfigDialog-3.0")
+		AceConfigDialog:Open('Pants')
 	end,
 
 	["metatable"]={__index=function(self,key) return self["help"] end},

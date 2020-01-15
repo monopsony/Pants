@@ -315,9 +315,9 @@ pants.interface.table_column_settings={
             local column=self.columns[sortBy]
             local direction=column.sort or column.defaultSort or 'asc'
             if direction:lower() == 'asc' then 
-                return a>b
-           else
                 return a<b
+           else
+                return a>b
             end
             
         end
@@ -535,10 +535,8 @@ do
     local tbl=ui:ScrollTable(frame,table_column_default,0,20)
     frame.raid_table=tbl
     interface.raid_table=tbl
-    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-75)
-    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-75)
-    tbl:EnableSelection(true)
-    tbl:SetClipsChildren(true)
+    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-120)
+    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-120)
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,20)
         
     --icon
@@ -553,6 +551,7 @@ do
     frame.start_session_button=ui:Button(frame,105,25,'Start session')
     frame.start_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',30,-1)
     frame.start_session_button:SetScript('OnClick',function()
+        if not pants.currently_in_council then pants:send_user_message('not_in_council','start sessions'); return end
         pants:create_popup_confirm('start the session',pants.start_session)
     end)
 
@@ -560,6 +559,7 @@ do
     frame.end_session_button=ui:Button(frame,105,25,'End session')
     frame.end_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',140,-1)
     frame.end_session_button:SetScript('OnClick',function()
+        if not pants.currently_in_council then pants:send_user_message('not_in_council','end sessions'); return end
         pants:create_popup_confirm('end the session',pants.send_end_session)
     end)
 
@@ -878,7 +878,7 @@ function interface:table_reload_item()
     
     if item_index and (pants.current_session) and (pants.current_session[item_index]) and (pants.current_session[item_index].responses) then
         tbl:SetData(pants.current_session[item_index].responses)
-        
+        if not interface:table_currently_sorted() then tbl:SortData(3) end
     else
         tbl:SetData(empty_table)
     end
@@ -897,6 +897,15 @@ function interface:update_assigned_text()
     end
     frame.text_assigned:SetText(assigned)
 
+end
+
+function interface:table_currently_sorted()
+    local tbl=self.raid_table
+    local cols=tbl.head.columns
+
+    --surely theres a better way?
+    for k,v in ipairs(cols) do if v.arrow:IsShown() then return k end end 
+    return nil
 end
 
 function interface:apply_selected_item()
@@ -948,6 +957,8 @@ function interface:apply_selected_item()
     else
         self.session_main_frame.raid_table:Hide()
     end
+
+
 end
 
 local function toggle_frame(frame)

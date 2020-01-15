@@ -257,7 +257,7 @@ do
 					qhi[2]=rowData.month
 					qhi[3]=rowData[1]
 					qhi[4]=rowData.index
-					pants:create_popup_confirm('|cffff0000overwrite any ongoing session|r and open this session from history',open_session_from_queued_history)
+					pants:create_popup_confirm('|cffff0000overwrite any ongoing session|r and open this session from history (not recommended during active sessions)',open_session_from_queued_history)
 				end,
 	            }, 
         },
