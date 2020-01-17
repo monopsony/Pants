@@ -174,7 +174,7 @@ function pants:apply_end_session()
     pants.interface:apply_session_to_scroll()
     pants.interface:apply_selected_item()
     self.interface.session_scroll_panel:Hide()
-
+    self.interface.qol_frame:Hide()
 end
 
 function pants:apply_rl_paras()

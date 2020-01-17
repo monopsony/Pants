@@ -20,25 +20,19 @@ function ef:event_handler(event,...)
     end
 
     if event=='BAG_UPDATE_DELAYED' then
-
-        if (pants.items_recently_looted) and (#pants.items_recently_looted>0) then  
-            pants:update_bag_items() 
-            pants:qol_generate_update_table()
-        end
-
-        if (not pants.items_tag_pending) or (#pants.items_tag_pending<1) then return end
+        if not pants.active_session then return end
 
         pants:update_bag_items()
         for i,v in ipairs(pants.items_tag_pending) do
-            
             if pants:has_tradable_version(v) then
                 pants.items_recently_looted[#pants.items_recently_looted+1]=v
                 pants:send_item_looted(v)
-                pants:qol_generate_update_table()
             else
             end
         end
         wipe(pants.items_tag_pending)
+
+        pants:qol_generate_update_table(false)
     end
 
 
@@ -91,9 +85,11 @@ end
 pants.qol_full_data={
 }
 
-function pants:qol_generate_update_table()
+function pants:qol_generate_update_table(skip)
     wipe(pants.qol_full_data)
     local d=pants.qol_full_data
+
+    if not skip then pants:update_bag_items() end
 
     if self:are_you_ML() then 
         self:qol_add_item_trades(d) 
@@ -159,8 +155,6 @@ function pants:qol_perform_quick_action(frame)
         pants:qol_generate_update_table()
 
     end
-
-
 end
 
 function pants:qol_add_item_trades(tbl)
@@ -169,7 +163,7 @@ function pants:qol_add_item_trades(tbl)
 
     for i=1,#self.current_session do
         local name,class=self:item_assigned_player(i)
-        if name then 
+        if name and self:has_tradable_version(self.current_session[i].item_info.itemLink) and (not UnitIsUnit(Ambiguate(name,'none'),'player')) then 
             tbl[#tbl+1]={name=name,class=class,mode='assign',itemLink=self.current_session[i].item_info.itemLink}
         end
     end
