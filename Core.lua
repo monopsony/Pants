@@ -15,11 +15,11 @@ local defaults={
 		scroll_frame_display_count=4,
 
 		scroll_frame_width=65,
-		scroll_frame_height=400,
-		scroll_frame_pos={500,500},
+		scroll_frame_height=200,
+		scroll_frame_pos={650,925},
 
-		main_frame_width=450,
-		main_frame_height=450,
+		main_frame_width=600,
+		main_frame_height=400,
 
 		raid_table_y_inset=130,
 		raid_table_x_inset=10,
@@ -31,13 +31,13 @@ local defaults={
 		max_resize_height=1500,
 
 		vote_frame_height=200,
-		vote_frame_width=200,
+		vote_frame_width=245,
 
 		history_frame_pos={500,500},
 		history_frame_width=500,
 		history_frame_height=500,
 
-		qol_frame_pos={500,500},
+		qol_frame_pos={850,500},
 		qol_frame_width=500,
 		qol_frame_height=500,
 
