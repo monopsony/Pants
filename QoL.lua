@@ -5,6 +5,7 @@ local unpack,ipairs,pairs=unpack,ipairs,pairs
 pants.qol_event_frame=CreateFrame('Frame',nil,UIParent)
 pants.items_recently_looted={}
 pants.items_tag_pending={}
+pants.items_trade_blacklist={}
 local ef=pants.qol_event_frame
 
 local events={'ENCOUNTER_LOOT_RECEIVED','ENCOUNTER_START','BAG_UPDATE_DELAYED'}
@@ -15,12 +16,12 @@ function ef:event_handler(event,...)
         local itemLink,_,name=select(3,...)
         if not UnitIsUnit(name,'player') then return end
         local _,_,rarity=GetItemInfo(itemLink)
-        if rarity<3 then return end
+        if rarity<4 then return end
         pants.items_tag_pending[#pants.items_tag_pending+1]=itemLink
     end
 
     if event=='BAG_UPDATE_DELAYED' then
-        if not pants.active_session then return end
+        if not IsInRaid() then return end
 
         pants:update_bag_items()
         for i,v in ipairs(pants.items_tag_pending) do
@@ -39,6 +40,7 @@ function ef:event_handler(event,...)
     if event=='ENCOUNTER_START' then
         wipe(pants.items_recently_looted)
         wipe(pants.pending_looted_items)
+        wipe(pants.items_trade_blacklist)
     end
 end
 ef:SetScript('OnEvent',ef.event_handler)
@@ -157,6 +159,23 @@ function pants:qol_perform_quick_action(frame)
     end
 end
 
+function pants:qol_perform_quick_action_2(frame)
+    if not frame.data then return end
+    local mode,name,itemLink=frame.data.mode2,frame.data.name,frame.data.itemLink
+    if (not mode) or (not name) or (not itemLink) then return end
+
+    pants:update_bag_items()
+
+    if mode == 'dont_add' then
+        local index=frame.data.index
+        if not index then return end
+
+        table.remove(pants.pending_looted_items,index)
+        pants:qol_generate_update_table()
+    end
+
+end
+
 function pants:qol_add_item_trades(tbl)
     if not tbl then return end
     if not self.current_session then return end
@@ -201,8 +220,8 @@ function pants:qol_add_looted_pending_items(tbl)
 
     for k,v in ipairs(self.pending_looted_items) do
         local class,CLASS
-        if UnitExists(v[2]) then class,CLASS=UnitClass(v[2]) end
-        tbl[#tbl+1]={name=v[2],class=class or 'PRIEST',mode='to_add',itemLink=v[1],index=k}
+        if UnitExists(v[2]) then class,CLASS=UnitClass( Ambiguate(v[2],'none')) end
+        tbl[#tbl+1]={name=v[2],class=class or 'PRIEST',mode='to_add',itemLink=v[1],index=k,mode2='dont_add'}
     end
 end
 

@@ -311,7 +311,9 @@ pants.interface.table_column_settings={
         compareSort=function(self,rowA,rowB,sortBy)
             local x,y=self:GetRow(rowA),self:GetRow(rowB)
             local a = ( x.disregarded and pants.current_session_paras.disregard_order )  or  (x.response_id) or 0
-            local b = ( y.disregarded and pants.current_session_paras.disregard_order )  or  (y.response_id) or 0         
+            local b = ( y.disregarded and pants.current_session_paras.disregard_order )  or  (y.response_id) or 0  
+            a = ((a==0) and (pants.current_session_paras.pending_order or 2.5)) or a
+            b = ((b==0) and (pants.current_session_paras.pending_order or 2.5)) or b
             local column=self.columns[sortBy]
             local direction=column.sort or column.defaultSort or 'asc'
             if direction:lower() == 'asc' then 

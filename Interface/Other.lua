@@ -169,7 +169,10 @@ do
 		f.button:SetPoint('RIGHT',f,'RIGHT',-10,0)
 		f.button:SetScript('OnClick',function() pants:qol_perform_quick_action(f) end)
 
-		--pants.interface.show_tooltip(frame,_,data.itemLink)
+		f.button2=ui:Button(f,qol_paras.btn_width,qol_paras.btn_height,'N/A')
+		f.button2:SetSize(qol_paras.btn_width/4, qol_paras.btn_height)
+		f.button2:SetPoint('RIGHT',f.button,'LEFT',-5,0)
+		f.button2:SetScript('OnClick',function() pants:qol_perform_quick_action_2(f) end)
     	
     	f.texture_frame:EnableMouse()
     	f.texture_frame.tooltip=ui:Tooltip(f.texture_frame,set_icon_tooltip,"PantsAddon_qol_tooltip_"..tostring(i),"TOPRIGHT",true)
@@ -214,6 +217,19 @@ do
 			frame.texture:SetTexture(itemTexture)
 			frame.texture_frame.tooltip.link=data.itemLink
 		end
+
+		if data.mode2 then
+			frame.button2:Show()
+
+			if data.mode2 == 'dont_add' then
+				frame.button2:SetText('X')
+			end
+
+		else
+			frame.button2:Hide()
+		end
+
+
 
 
 		return frame

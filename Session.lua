@@ -198,7 +198,9 @@ function pants:apply_item_assignment(data)
 
     for k,v in pairs(self.current_session[item_index].responses) do 
         --makes sure that you dont get prompted to trade items that you looted then got assigned
-        if UnitIsUnit(v[1],'player') then pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) end
+        if UnitIsUnit(Ambiguate(v[1],'none'),'player') then
+            pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) 
+        end
 
         if k==index then v.win=true else v.win=false end
     end

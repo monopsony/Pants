@@ -48,6 +48,7 @@ local defaults={
 			response_colours={[0]={.2,.7,.7,1},[1]={.2,1,.2,1},[2]={.2,.2,1,1},[3]={.7,.7,.2,1},[4]={.7,.2,.7,1},[5]={.5,.5,.5,1},[6]={.5,.5,.5,1},[100]={.3,.3,.3,1}},
 			disregard={text="Disregarded",color={.9,.6,0,1}},
 			disregard_order=1.5,
+			pending_order=1.6,
 		}, --end of session_paras
 
 		rl_paras={
