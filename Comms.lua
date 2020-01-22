@@ -71,8 +71,22 @@ pants.registered_comms={
 		pants.interface:apply_session_to_scroll()
 		
 		local pants=pants
-		afterDo(waiting_time,function() pants:send_equipped_items(#pants.current_session) end)
+
+		--check which items are missing, send 
+		--for i=1,#pants.current_session do
+		--	local index=pants:name_index_in_session(pants.full_name,i)
+		--	if index and (not pants.current_session[i].responses[index][4]) then --first equipped item
+		--		afterDo(waiting_time,function() pants:send_equipped_items(i) end)
+		--	end
+		--end
 		
+		for i=1,#pants.current_session do
+			if (not pants.equipped_item_index_sent[i]) then
+				pants.equipped_item_index_sent[i]=true
+				afterDo(waiting_time,function() pants:send_equipped_items(i) end)
+			end
+		end
+
 	end,
 
 	["pantsSResUpd"]=function(data,_,sender)
@@ -166,6 +180,7 @@ function pants:send_response_update(response)
 	self:send_raid_comm("pantsSResUpd",s)
 end
 
+pants.equipped_item_index_sent={} --will be filled when you send items, resets on session end
 local ipairs=ipairs
 function pants:send_equipped_items(session_index)
 	if (not session_index) or (not self.current_session[session_index]) then return end

@@ -158,6 +158,7 @@ local wipe_keys={
     'simc_strings',
     'items_recently_looted',
     'pending_looted_items',
+    'equipped_item_index_sent'
 }
 
 function pants:apply_end_session()

@@ -34,6 +34,7 @@ pants.item_loc_to_slot={
     INVTYPE_SHOULDER={3},
     INVTYPE_BODY={4},
     INVTYPE_CHEST={5},
+    INVTYPE_ROBE={5},
     INVTYPE_WAIST={6},
     INVTYPE_LEGS={7},
     INVTYPE_FEET={8},

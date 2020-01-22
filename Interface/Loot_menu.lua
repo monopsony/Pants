@@ -186,6 +186,21 @@ local regarded_icon,disregarded_icon=media.."EYE_OPEN",media.."EYE_CLOSED"
 local simc_filled,simc_empty=media.."SIMC_ICON",media.."SIMC_ICON"
 local assign_icon=media..'LOOT_BAG'
 local RAID_CLASS_COLORS=RAID_CLASS_COLORS 
+local compare_sort_function=function(self,rowA,rowB,sortBy)
+    local x,y=self:GetRow(rowA),self:GetRow(rowB)
+    local a = ( x.disregarded and pants.current_session_paras.disregard_order )  or  (x.response_id) or 0
+    local b = ( y.disregarded and pants.current_session_paras.disregard_order )  or  (y.response_id) or 0  
+    a = ((a==0) and (pants.current_session_paras.pending_order or 2.5)) or a
+    b = ((b==0) and (pants.current_session_paras.pending_order or 2.5)) or b
+    local column=self.columns[sortBy]
+    local direction=column.sort or column.defaultSort or 'asc'
+    if direction:lower() == 'asc' then 
+        return a<b
+    else
+        return a>b
+    end
+end
+
 local yellow_color,grey_color,white_color,red_color={r=1,g=.8,b=0,a=1},{r=.3,g=.3,b=.3,a=1},{r=1,g=1,b=1,a=1},{r=1,g=.2,b=.2,a=1}
 pants.interface.table_column_settings={
 
@@ -288,7 +303,7 @@ pants.interface.table_column_settings={
             local color=RAID_CLASS_COLORS[class]
             return {r=color.r,g=color.g,b=color.b}
         end,
-        sortable=false,
+        sortable=true,
     }, 
     
     --Response
@@ -308,21 +323,7 @@ pants.interface.table_column_settings={
             end
             return {r=r,g=g,b=b,a=a or 1}
         end,
-        compareSort=function(self,rowA,rowB,sortBy)
-            local x,y=self:GetRow(rowA),self:GetRow(rowB)
-            local a = ( x.disregarded and pants.current_session_paras.disregard_order )  or  (x.response_id) or 0
-            local b = ( y.disregarded and pants.current_session_paras.disregard_order )  or  (y.response_id) or 0  
-            a = ((a==0) and (pants.current_session_paras.pending_order or 2.5)) or a
-            b = ((b==0) and (pants.current_session_paras.pending_order or 2.5)) or b
-            local column=self.columns[sortBy]
-            local direction=column.sort or column.defaultSort or 'asc'
-            if direction:lower() == 'asc' then 
-                return a<b
-           else
-                return a>b
-            end
-            
-        end
+        compareSort=compare_sort_function,
     },   
     
     --ilvl
@@ -334,7 +335,9 @@ pants.interface.table_column_settings={
         index=3,
         format=function(ilvl,response) 
             return ("%.0f"):format(ilvl)
-        end
+        end,
+        compareSort=compare_sort_function,
+
     }, 
     
     --equipped 1
@@ -359,6 +362,8 @@ pants.interface.table_column_settings={
 				return false;
 			end
         },
+        compareSort=compare_sort_function,
+
     }, 
     
     --equipped 2
@@ -383,6 +388,8 @@ pants.interface.table_column_settings={
 				return false;
 			end
         },
+        compareSort=compare_sort_function,
+
     }, 
  
     --note icon
@@ -408,6 +415,7 @@ pants.interface.table_column_settings={
 				return false;
 			end
         },
+        compareSort=compare_sort_function,
     }, 
  
     --disregard icon
@@ -427,6 +435,7 @@ pants.interface.table_column_settings={
                 pants:send_response_update({item_index=item_index,row_index=rowIndex,disregarded=regard})
             end,
             }, 
+        compareSort=compare_sort_function,
         },
  
     --simc icon
@@ -487,6 +496,7 @@ pants.interface.table_column_settings={
                 return false;
             end
             }, 
+            compareSort=compare_sort_function,
         },
 
     --assign icon
@@ -509,7 +519,9 @@ pants.interface.table_column_settings={
                 pants:create_popup_confirm( ('assign this item to |c%s%s|r'):format(hex,name),pants.confirm_pending_item_assignment)
             end,
             }, 
+        compareSort=compare_sort_function,
         },
+        
 }
 
 local table_column_default=pants.interface.table_column_settings
@@ -880,7 +892,7 @@ function interface:table_reload_item()
     
     if item_index and (pants.current_session) and (pants.current_session[item_index]) and (pants.current_session[item_index].responses) then
         tbl:SetData(pants.current_session[item_index].responses)
-        if not interface:table_currently_sorted() then tbl:SortData(3) end
+        if not interface:table_currently_sorted() then tbl.head.columns[3]:Click() end
     else
         tbl:SetData(empty_table)
     end
