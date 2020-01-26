@@ -3,10 +3,13 @@ local pants=PantsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
 local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
+pants.version='1.1.3'
+
 local defaults={
 	profile={
 
 		quick_follow=true,
+		announce_winner=true,
 
 		scroll_item_size={40,40},
 		scroll_item_default_icon=136207,
@@ -76,7 +79,7 @@ function pants:OnInitialize()
 	self.realm_name=realm
 	
 	self.db=LibStub("AceDB-3.0"):New("PantsAddonDB",defaults,true)  --true sets the default profile to a profile called "Default"
-																 --see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0
+																 	--see https://www.wowace.com/projects/ace3/pages/api/ace-db-3-0
 	self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
@@ -97,7 +100,7 @@ end
 local chat_commands={
 	["add"]=function(self,msg)
 	
-		if (self.active_session) and (not self.currently_in_council) then pants:send_user_message('not_in_council','add items to sessions'); return end
+		if (self.active_session) and (not self:in_council()) then pants:send_user_message('not_in_council','add items to sessions'); return end
 
 		if not pants:is_itemlink(msg) then pants:send_user_message("add_items_none_found") end
 		local msg=pants:separate_itemlinks(msg)
@@ -128,8 +131,10 @@ local chat_commands={
 		self.interface.session_scroll_panel:Show()
 	end,
 	
-	["raid_ping"]=function()     
-		pants:send_raid_comm("pantsPing")
+	["ping"]=function()
+		pants:send_raid_comm("pantsPing",'init')
+		pants:start_raid_ping()
+		pants:send_user_message('ping_init')
 	end,
 	
 	["send_session_paras"]=function(self)
@@ -219,6 +224,59 @@ function pants:OnEnable()
 		
 end
 
+pants.initiated_ping=false
+pants.ping_responses={}
+function pants:start_raid_ping()
+	pants.initiated_ping=true
+	wipe(pants.ping_responses)
+    local list=self:get_units_list()
+
+    for i=1,#list do 
+        local unit=list[i]
+        local name=pants:unit_full_name(unit)
+        if not name then break end
+        pants.ping_responses[name]=false
+    end
+
+	C_Timer.After(3,function() pants:end_raid_ping() end)
+end
+
+local no_response, diff_version = {}, {}
+function pants:end_raid_ping()
+	pants.initiated_ping=false
+
+	for k,v in pairs(self.ping_responses) do 
+		if not v then 
+			table.insert(no_response,k)
+		else
+			if v~=self.version then 
+				diff_version[k]=v
+			end
+		end
+	end
+
+
+	--print result
+	s1='No response:\n'
+	for _,v in ipairs(no_response) do 
+		v=Ambiguate(v,'none')
+		_,CLASS=UnitClass(v)
+		local h=pants:class_to_hex(CLASS or 'PRIEST')
+		s1=('%s|c%s%s|r, '):format(s1,h,v)
+	end
+
+	s2='Different version:\n'
+	for k,v in pairs(diff_version) do 
+		k=Ambiguate(k,'none')
+		_,CLASS=UnitClass(k)
+		local h=pants:class_to_hex(CLASS or 'PRIEST')
+		s2=('%s|c%s%s|r (%s), '):format(s2,h,k,v)
+	end
+	pants:send_user_message('ping_result')
+	print(s1)
+	print(s2)
+
+end
 
 local event_frame=CreateFrame('Frame','PantsGlobalEventFrame',UIParent)
 registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}

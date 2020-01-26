@@ -138,7 +138,7 @@ function pants:qol_perform_quick_action(frame)
     end --end of 'assign' mode
 
     if mode == 'to_add' then
-        if not self.currently_in_council then return end
+        if not self:in_council() then return end
         local index=frame.data.index
         if not index then return end
 

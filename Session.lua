@@ -67,10 +67,8 @@ function pants:raid_table_test_data()
 end
 
 function pants:generate_group_member_list(item_info)
-    if not IsInGroup() then return {} end
     local a={}
     local list=self:get_units_list()
-
     itemSubType=item_info.itemSubType
     for i=1,#list do 
         local unit=list[i]
@@ -85,7 +83,7 @@ function pants:generate_group_member_list(item_info)
 end
 
 function pants:start_session()
-    if (not self.currently_in_council) then pants:send_user_message('not_in_council','start sessions'); return end
+    if (not self:in_council()) then pants:send_user_message('not_in_council','start sessions'); return end
     local tbl=self.current_session
     if (not tbl) or (#tbl==0) then 
         self:send_user_message("add_items_none_found")
@@ -197,11 +195,15 @@ function pants:apply_item_assignment(data)
     local index=pants:name_index_in_session(name,item_index)
     if not index then return end
 
+    local response=self.current_session[item_index].responses[index][2]
+    if self.para.announce_winner then
+        local s=('Item %s was assigned to %s for %s'):format( self.current_session[item_index].item_info.itemLink , Ambiguate(name,'none'), response)
+        SendChatMessage(s,(IsInRaid and 'RAID') or 'PARTY')
+    end
+
     for k,v in pairs(self.current_session[item_index].responses) do 
         --makes sure that you dont get prompted to trade items that you looted then got assigned
-        if UnitIsUnit(Ambiguate(v[1],'none'),'player') then
-            pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) 
-        end
+        pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) 
 
         if k==index then v.win=true else v.win=false end
     end
@@ -247,4 +249,9 @@ function pants:find_ML()
         end
     end
     return false
+end
+
+
+function pants:in_council()
+    if IsInRaid() then return self.currently_in_council else return true end
 end

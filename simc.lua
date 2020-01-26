@@ -64,4 +64,8 @@ function pants:generate_bag_item_from_info(item)
     return subs or ''
 end
 
-
+function pants:simc_slash_itemlink(item)
+	if not item then return end
+	if not Simulationcraft then self:send_user_message('no_simc'); return  end
+	Simulationcraft:HandleChatCommand(item)
+end

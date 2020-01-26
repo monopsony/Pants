@@ -134,7 +134,22 @@ do
     --note edit box
     frame.note_eb=ui:MultiLineBox(frame,200,200,"")
     local eb=frame.note_eb
-    eb.editBox.stdUi=dd.stdUi --bandaiding what I think is a bug in the new stdui update
+
+    --bandaiding what I think is a bug in the new stdui update
+    eb.editBox.stdUi=dd.stdUi  
+    eb.scrollFrame.stdUi=dd.stdUi 
+    eb.scrollChild.stdUi=dd.stdUi
+    local previous_value=''
+    eb.editBox:SetScript("OnTextChanged",function(self) 
+        local s = self:GetText()
+        local _,n_lines = string.gsub(s,'\n','') --second return value is number of occurences
+        if n_lines > 30 then 
+            self:SetText(previous_value)
+        else 
+            previous_value=s
+        end
+
+    end)
     eb:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-10,-40)
     eb:SetPoint("BOTTOMLEFT",frame,"BOTTOMLEFT",10,40)
     
@@ -428,7 +443,7 @@ pants.interface.table_column_settings={
         format="icon",
         events={
 			OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-                if not pants.currently_in_council then pants:send_user_message('not_in_council','disregard responses'); return end
+                if not pants:in_council() then pants:send_user_message('not_in_council','disregard responses'); return end
                 local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 local regard=(not rowData.disregarded) or false
@@ -451,6 +466,9 @@ pants.interface.table_column_settings={
                 local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 local name=rowData[1]
+                local iteminfo=pants.current_session[item_index].item_info
+
+                if UnitIsUnit(Ambiguate(name,'none'),'player') then pants:simc_slash_itemlink(iteminfo.itemLink); return end
 
                 local simc_string=pants.simc_strings[name]
                 if (not simc_string) or (simc_string=="failed") then 
@@ -462,7 +480,6 @@ pants.interface.table_column_settings={
                 elseif simc_string=="pending" then return end
 
 
-                local iteminfo=pants.current_session[item_index].item_info
                 local extra=pants:generate_bag_item_from_info(iteminfo)
                 
                 local concat=('%s%s'):format(simc_string,extra)
@@ -509,7 +526,7 @@ pants.interface.table_column_settings={
         format="icon",
         events={
             OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
-                if not pants.currently_in_council then pants:send_user_message('not_in_council','assign winners'); return end
+                if not pants:in_council() then pants:send_user_message('not_in_council','assign winners'); return end
                 local item_index=pants.interface.currently_selected_item or nil
                 if not item_index then return end 
                 if rowData.win then return end
@@ -565,7 +582,7 @@ do
     frame.start_session_button=ui:Button(frame,105,25,'Start session')
     frame.start_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',30,-1)
     frame.start_session_button:SetScript('OnClick',function()
-        if not pants.currently_in_council then pants:send_user_message('not_in_council','start sessions'); return end
+        if not pants:in_council() then pants:send_user_message('not_in_council','start sessions'); return end
         pants:create_popup_confirm('start the session',pants.start_session)
     end)
 
@@ -573,7 +590,7 @@ do
     frame.end_session_button=ui:Button(frame,105,25,'End session')
     frame.end_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',140,-1)
     frame.end_session_button:SetScript('OnClick',function()
-        if not pants.currently_in_council then pants:send_user_message('not_in_council','end sessions'); return end
+        if not pants:in_council() then pants:send_user_message('not_in_council','end sessions'); return end
         pants:create_popup_confirm('end the session',pants.send_end_session)
     end)
 

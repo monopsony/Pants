@@ -4,8 +4,14 @@ local afterDo,waiting_time=C_Timer.After,1
 pants.registered_comms={
 
 	["pantsPing"]=function(data,channel,sender)
-		if UnitIsUnit("player",sender) then sender="You" end
-		pants:send_user_message("raid_ping",sender,channel)
+		if (data~='init') and pants.initiated_ping then 
+			pants.ping_responses[pants:unit_full_name(sender)]=data
+			return 
+		end
+
+		if (data=='init') then
+			pants:send_raid_comm('pantsPing',pants.version or '<1.1.3')
+		end
 	end,
 	
 	['pantsRLSend']=function(data,channel,sender)
@@ -138,9 +144,10 @@ pants.registered_comms={
 local registered_comms=pants.registered_comms
 
 function pants:send_raid_comm(prefix,data)
-	if (not IsInGroup()) then return end
-	local channel=(IsInRaid() and "RAID") or "PARTY"
-	self:SendCommMessage(prefix,data or '0',channel)
+
+	local channel=(IsInRaid() and "RAID") or (IsInGroup() and "PARTY") or ("WHISPER")
+	if channel=="WHISPER" then name=self.full_name end
+	self:SendCommMessage(prefix,data or '0',channel,name)
 end
 
 function pants:OnCommReceived(prefix,data,channel,sender)
@@ -153,7 +160,7 @@ end
 
 
 function pants:send_simc_request(name)
-	if not self.currently_in_council then pants:send_user_message('not_in_council','send SimC requests'); return end
+	if not self:in_council() then pants:send_user_message('not_in_council','send SimC requests'); return end
 	local s=self:compress_encode(name)
 	self:send_raid_comm("pantsSimcReq",s)
 end
@@ -166,7 +173,7 @@ function pants:send_current_session()
 end
 
 function pants:send_new_session_item(i)
-    if not self.currently_in_council then pants:send_user_message('not_in_council','end sessions'); return end
+    if not self:in_council() then pants:send_user_message('not_in_council','end sessions'); return end
 	local session=self.current_session
 	if (not i) or (#session<i) then return end 
 	session['item_session_id']=i
@@ -194,7 +201,7 @@ function pants:send_equipped_items(session_index)
 end
 
 function pants:send_end_session()
-    if not self.currently_in_council then pants:send_user_message('not_in_council','end sessions'); return end
+    if not self:in_council() then pants:send_user_message('not_in_council','end sessions'); return end
 	self:send_raid_comm("pantsSEnd",nil)
 end
 
