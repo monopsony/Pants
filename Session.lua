@@ -196,7 +196,7 @@ function pants:apply_item_assignment(data)
     if not index then return end
 
     local response=self.current_session[item_index].responses[index][2]
-    if self.para.announce_winner then
+    if self:are_you_ML() and self.para.announce_winner then
         local s=('Item %s was assigned to %s for %s'):format( self.current_session[item_index].item_info.itemLink , Ambiguate(name,'none'), response)
         SendChatMessage(s,(IsInRaid and 'RAID') or 'PARTY')
     end
