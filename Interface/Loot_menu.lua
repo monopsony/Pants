@@ -170,7 +170,13 @@ do
         frame.note_eb:ClearFocus()
 
         pants:send_response_update(response)
-        pants:throttle_action('send_button')
+        if pants.para.go_next then 
+            local new = pants.interface:item_go_next() 
+            if not new then pants:throttle_action('send_button') end
+        else
+            pants:throttle_action('send_button')
+        end
+        
     end)
     
 
@@ -209,6 +215,12 @@ local compare_sort_function=function(self,rowA,rowB,sortBy)
     b = ((b==0) and (pants.current_session_paras.pending_order or 2.5)) or b
     local column=self.columns[sortBy]
     local direction=column.sort or column.defaultSort or 'asc'
+
+    if a==b then 
+        local n1,n2 = x[1], y[1]
+        return n1<n2
+    end
+
     if direction:lower() == 'asc' then 
         return a<b
     else
@@ -428,8 +440,17 @@ pants.interface.table_column_settings={
 			OnLeave = function(rowFrame, cellFrame)
 				show_tooltip_string(cellFrame, false);
 				return false;
-			end
-        },
+			end,
+            OnClick = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                if not pants.para.copy_note_link then return end
+                local note = rowData.note
+                if not note then return end
+                note = note..' ' --easier than adding a third match for "if there's only a link"
+                local a = note:match('www.*\n')
+                if not a then a = note:match('www.* ') end
+                if a then pants.interface:open_link_cp_frame(a) end
+            end,  
+            },      
         compareSort=compare_sort_function,
     }, 
  
@@ -1180,6 +1201,20 @@ function interface:check_items_status()
     end
 end
 
+function interface:item_go_next()
+    local items=pants.current_session
+    local scroll_items=interface.session_scroll_panel.scrollChild.items
+
+    local i0 = self.currently_selected_item
+    if (not i0) then return end
+
+    if not items then return end
+    for i=i0+1,#items do 
+        if scroll_items[i].status == 'vote_pending' then scroll_items[i]:Click(); return true end
+    end
+    return false
+end
+
 function interface:reset_items_status()
     local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
@@ -1190,28 +1225,3 @@ function interface:reset_items_status()
     end
 end
 
-pants.throttle_timers={
-    send_button={
-        time=1,
-        expire=function() PantsAddon.interface.session_vote_frame.send_button:Enable() end,
-        start=function() PantsAddon.interface.session_vote_frame.send_button:Disable() end,
-    },
-
-    simc_ask={
-        time=.5,
-        allowed=true,
-        expire=function() PantsAddon.throttle_timers.simc_ask.allowed=true end,
-        start=function() PantsAddon.throttle_timers.simc_ask.allowed=false end,
-    },
-}
-
-function pants:throttle_action(s)
-    if (not s) or (not self.throttle_timers[s]) then return end
-    local tbl=self.throttle_timers[s]
-    local start_time,dur=GetTime(),tbl.time
-    C_Timer.After(dur+.05,function()
-        if GetTime()-start_time<dur then return end
-        tbl.expire()
-    end)
-    tbl.start()
-end

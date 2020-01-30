@@ -26,8 +26,12 @@ pants.predefined_messages={
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
     ['item_not_in_bags']=function(a) return ("Tradable version of %s not found in bags"):format(a or "N/A") end,
-    ['session_closed']=function(a) return ("Active session was ended by %s."):format(a or "N/A") end,
+    ['session_closed']=function(a) return ("Active szession was ended by %s."):format(a or "N/A") end,
     ['no_simc']='You need the |cffffff00Simulationcraft|r addon for this feature',
+    ['session_started']=function(a) 
+        local _,CLASS = UnitClass( Ambiguate(a or 'PRIEST','none') )
+        return ('Session started by |c%s%s|r'):format(pants:class_to_hex(CLASS),Ambiguate(a,'none'))
+    end,
     ['generic']=function(a) return tostring(a) end,
 }
 
@@ -543,6 +547,7 @@ local raid_units={}
 for i=1,40 do raid_units[i]="raid"..tostring(i) end
 local party_units={"player","party1","party2","party3","party4"}
 local player_list={"player"}
+
 function pants:get_units_list()
     if not IsInGroup() then return player_list end
     return (IsInRaid() and raid_units) or party_units
@@ -601,4 +606,30 @@ function pants:are_you_ML()
             end
         end
     end
+end
+
+pants.throttle_timers={
+    send_button={
+        time=2.5,
+        expire=function() PantsAddon.interface.session_vote_frame.send_button:Enable() end,
+        start=function() PantsAddon.interface.session_vote_frame.send_button:Disable() end,
+    },
+
+    simc_ask={
+        time=.5,
+        allowed=true,
+        expire=function() PantsAddon.throttle_timers.simc_ask.allowed=true end,
+        start=function() PantsAddon.throttle_timers.simc_ask.allowed=false end,
+    },
+}
+
+function pants:throttle_action(s)
+    if (not s) or (not self.throttle_timers[s]) then return end
+    local tbl=self.throttle_timers[s]
+    local start_time,dur=GetTime(),tbl.time
+    C_Timer.After(dur+.05,function()
+        if GetTime()-start_time<dur then return end
+        tbl.expire()
+    end)
+    tbl.start()
 end

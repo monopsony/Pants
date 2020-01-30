@@ -242,3 +242,25 @@ do
 	end
 
 end
+
+------Link CP frame
+
+interface.link_cp_frame = ui:SimpleEditBox(UIParent,450,30,"")
+local f = interface.link_cp_frame 
+f:SetPoint('CENTER')
+f:SetAlpha(.7)
+f:SetFrameStrata('DIALOG')
+f:Hide()
+
+function interface:open_link_cp_frame(s)
+	if not (type(s)=='string') then return end
+	local f = self.link_cp_frame
+	f:Show()
+	f:SetText(s)
+	f:SetFocus()
+	f:HighlightText()
+end
+
+f:SetScript('OnEditFocusLost',function(self) self:Hide() end)
+f:SetScript('OnEnterPressed',function(self) self:Hide() end)
+f:SetScript('OnEscapePressed',function(self) self:Hide() end)

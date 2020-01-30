@@ -41,7 +41,6 @@ function pants:get_session_order()
     return session_order
 end
 
-
 pants.session_test_data={
     {"Bob",1,320,nil},
     {"Patrick",2,320,nil},
@@ -160,7 +159,7 @@ local wipe_keys={
 }
 
 function pants:apply_end_session()
-    if self.active_session then 
+    if self.active_session and self.para.session_archive then 
         pants:archive_current_session() 
     end
     self.active_session=false
@@ -251,7 +250,8 @@ function pants:find_ML()
     return false
 end
 
-
 function pants:in_council()
     if IsInRaid() then return self.currently_in_council else return true end
 end
+
+

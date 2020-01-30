@@ -50,3 +50,45 @@ args["follow_unit_prot"]={
             return pants.para.quick_follow
         end,
 }  
+
+args["go_next_prot"]={
+    type="toggle",
+    order=13,
+    name="Next item",
+    desc='When active, automatically goes to the next item in the list (for which you can roll) when responding',
+    set=function(self,value)
+            pants.para.go_next=value
+
+        end,
+    get=function(self) 
+            return pants.para.go_next
+        end,
+}  
+
+args["archive_prot"]={
+    type="toggle",
+    order=14,
+    name="Session archive",
+    desc='When active, saves all sessions in the archive to be re-opened using /pants history',
+    set=function(self,value)
+            pants.para.session_archive=value
+
+        end,
+    get=function(self) 
+            return pants.para.session_archive
+        end,
+}  
+
+args["copy_note_link_prot"]={
+    type="toggle",
+    order=15,
+    name="Note links",
+    desc='When active, clicking on a note will open a frame containing the first link found (for easy copy pasting)',
+    set=function(self,value)
+            pants.para.copy_note_link=value
+
+        end,
+    get=function(self) 
+            return pants.para.copy_note_link
+        end,
+}  

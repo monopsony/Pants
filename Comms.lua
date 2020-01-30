@@ -54,6 +54,8 @@ pants.registered_comms={
 		pants.current_session=tbl
 		pants.active_session=true
 
+		pants:send_user_message('session_started',sender)
+
 		pants.current_session_paras=tbl.paras
 		pants.interface:refresh_sort_raid_table()
 		pants.interface:update_response_dd()

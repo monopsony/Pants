@@ -10,6 +10,8 @@ local defaults={
 
 		quick_follow=true,
 		announce_winner=true,
+		session_archive=true,
+		copy_note_link=true,
 
 		scroll_item_size={40,40},
 		scroll_item_default_icon=136207,
