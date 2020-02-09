@@ -12,6 +12,9 @@ local defaults={
 		announce_winner=true,
 		session_archive=true,
 		copy_note_link=true,
+		reopen_on_add=true,
+		announce_on_add=true,
+		ilvl_difference=true,
 
 		scroll_item_size={40,40},
 		scroll_item_default_icon=136207,

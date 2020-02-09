@@ -26,11 +26,17 @@ pants.predefined_messages={
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
     ['item_not_in_bags']=function(a) return ("Tradable version of %s not found in bags"):format(a or "N/A") end,
-    ['session_closed']=function(a) return ("Active szession was ended by %s."):format(a or "N/A") end,
+    ['session_closed']=function(a) return ("Active szszszszsession was ended by %s."):format(a or "N/A") end,
+    ['session_active']='A session is currently active',
     ['no_simc']='You need the |cffffff00Simulationcraft|r addon for this feature',
     ['session_started']=function(a) 
         local _,CLASS = UnitClass( Ambiguate(a or 'PRIEST','none') )
         return ('Session started by |c%s%s|r'):format(pants:class_to_hex(CLASS),Ambiguate(a,'none'))
+    end,
+    ['item_added']=function(itemLink,sender) 
+        local _,CLASS = UnitClass( Ambiguate(sender or 'PRIEST','none') )
+        local itemLink= itemLink or '[N/A]'
+        return ('|c%s%s|r added %s to the session'):format(pants:class_to_hex(CLASS),Ambiguate(sender,'none'),itemLink)
     end,
     ['generic']=function(a) return tostring(a) end,
 }
@@ -56,7 +62,7 @@ pants.item_loc_to_slot={
     INVTYPE_WEAPONMAINHAND={16},
     INVTYPE_WEAPONOFFHAND={17},
     INVTYPE_2HWEAPON={16,17},
-    INVTYPE_RANGED={18},
+    INVTYPE_RANGED={16},
     INVTYPE_THROWN={18},
     INVTYPE_RANGEDRIGHT={18},
     INVTYPE_RELIC={18},
@@ -167,7 +173,7 @@ pants.item_itemSubType_class_filters={
         ['MONK']=true,
         ['WARLOCK']=false,
         ['DRUID']=false,
-        ['DEMONHUNTER']=false,
+        ['DEMONHUNTER']=true,
         ['DEATHKNIGHT']=true,    
     },
 

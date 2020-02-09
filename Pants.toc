@@ -1,7 +1,7 @@
 ## Interface: 70100
 ## Title: Pants
 ## Author: Mono
-## DefaultState: disabled
+## DefaultState: enabled
 ## SavedVariables: PantsAddonDB
 ## OptionalDeps: Simulationcraft
 

@@ -357,11 +357,28 @@ pants.interface.table_column_settings={
     {
         name="iLvl",
         sortable=false,
-        width=40,
+        width=75,
         align="CENTER",
         index=3,
-        format=function(ilvl,response) 
-            return ("%.0f"):format(ilvl)
+        format=function(ilvl_avg,response)
+            if not pants.interface.currently_selected_item then return end
+            local ilvl,ilvln = pants.current_session[pants.interface.currently_selected_item].item_info.itemLevel,9999
+            if response.equipped then 
+                for i=1,2 do 
+                    local item = response.equipped[i]
+                    if not item then break end
+                    local temp_ilvl = select(4,GetItemInfo(item))
+                    if not temp_ilvl then break end
+                    ilvln = min(temp_ilvl, ilvln)
+                end
+
+                if ilvln~=9999 and pants.para.ilvl_difference then
+                    local diff = ilvl - ilvln
+                    local c = ((diff>0) and '+') or ((diff<0) and '-') or ''
+                    return ("%.0f(%s%s)"):format(ilvl_avg,c,abs(diff))
+                end
+            end
+            return ("%.0f"):format(ilvl_avg)
         end,
         compareSort=compare_sort_function,
 
@@ -604,6 +621,7 @@ do
     frame.start_session_button:SetPoint('BOTTOMLEFT',frame,'TOPLEFT',30,-1)
     frame.start_session_button:SetScript('OnClick',function()
         if not pants:in_council() then pants:send_user_message('not_in_council','start sessions'); return end
+        if pants.active_session then pants:send_user_message('session_active') return end
         pants:create_popup_confirm('start the session',pants.start_session)
     end)
 

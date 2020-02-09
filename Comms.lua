@@ -75,10 +75,11 @@ pants.registered_comms={
 		if not UnitIsUnit("player",sender) then 
 			local tbl=pants:decode_decompress_deserialize(data)
 			pants.current_session[#pants.current_session+1]=tbl
+			local itemLink = tbl.item_info.itemLink
+			if pants.active_session and pants.para.announce_on_add then pants:send_user_message('item_added',itemLink,sender) end
 		end
 		pants.interface:apply_session_to_scroll()
-		
-		local pants=pants
+		if pants.active_session and pants.para.reopen_on_add then pants.interface.session_scroll_panel:Show() end
 
 		--check which items are missing, send 
 		--for i=1,#pants.current_session do
@@ -87,7 +88,8 @@ pants.registered_comms={
 		--		afterDo(waiting_time,function() pants:send_equipped_items(i) end)
 		--	end
 		--end
-		
+		--
+		local pants=pants
 		for i=1,#pants.current_session do
 			if (not pants.equipped_item_index_sent[i]) then
 				pants.equipped_item_index_sent[i]=true

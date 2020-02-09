@@ -144,7 +144,6 @@ local help_table_items={}
 function pants:get_equipped_items(session_index)
     if (not session_index) or (not self.current_session[session_index]) then return end
     local loc=self.current_session[session_index].item_info.itemEquipLoc
-    
     local links=self:get_item_link_slot(loc)
     if not links then return end 
     return links
@@ -171,6 +170,7 @@ function pants:apply_end_session()
 
     pants.interface:apply_session_to_scroll()
     pants.interface:apply_selected_item()
+    self.interface.session_vote_frame.note_eb:SetText('')
     self.interface.session_scroll_panel:Hide()
     self.interface.qol_frame:Hide()
 end
@@ -235,7 +235,7 @@ end
 
 function pants:find_ML()
     local para=self.current_rl_paras
-    if (not para) or (not para.council) then self:send_user_message('no_rl_paras'); return end
+    if (not para) or (not para.council) then return end
 
     for k,v in pairs(para.council) do 
         if (type(v)=='string') and (v~='') then 

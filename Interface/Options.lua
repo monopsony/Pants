@@ -92,3 +92,47 @@ args["copy_note_link_prot"]={
             return pants.para.copy_note_link
         end,
 }  
+
+
+args["reopen_on_add_prot"]={
+    type="toggle",
+    order=16,
+    name="Reopen on add",
+    desc='When active, reopen the pants window when items are added to an active session',
+    set=function(self,value)
+            pants.para.reopen_on_add=value
+
+        end,
+    get=function(self) 
+            return pants.para.reopen_on_add
+        end,
+}  
+
+
+args["announce_on_add_prot"]={
+    type="toggle",
+    order=17,
+    name="Announce on add",
+    desc='When active, announce items when added to an active session',
+    set=function(self,value)
+            pants.para.announce_on_add=value
+
+        end,
+    get=function(self) 
+            return pants.para.announce_on_add
+        end,
+}  
+
+args["ilvl_difference_prot"]={
+    type="toggle",
+    order=17,
+    name="iLvl difference",
+    desc='When active, show the ilvl difference in the response table',
+    set=function(self,value)
+            pants.para.ilvl_difference=value
+
+        end,
+    get=function(self) 
+            return pants.para.ilvl_difference
+        end,
+}  
