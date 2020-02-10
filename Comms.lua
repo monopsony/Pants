@@ -162,7 +162,7 @@ pants.registered_comms={
 	["pantsDontTrade"]=function(data,_,sender)
 		local data=pants:decode_decompress_deserialize(data)
 		if not data.target and data.itemLink then return end
-		if not UnitIsUnit(Ambiguate(target,'none'),'player') then return end
+		if not UnitIsUnit(Ambiguate(data.target,'none'),'player') then return end
 		pants:remove_recent_items_by_link(data.itemLink)
 		pants:qol_generate_update_table()
 	end,	

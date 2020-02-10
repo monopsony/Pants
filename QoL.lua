@@ -177,7 +177,9 @@ function pants:qol_perform_quick_action_2(frame)
         if not index then return end
 
         table.remove(pants.pending_looted_items,index)
-        pants:send_raid_comm('pantsDontTrade',{target=name,itemLink=itemLink})
+        local t = {target=name,itemLink=itemLink}
+        t = pants:serialize_compress_encode(t)
+        pants:send_raid_comm('pantsDontTrade',t)
         pants:qol_generate_update_table()
     end
 
