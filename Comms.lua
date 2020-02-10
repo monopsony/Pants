@@ -205,6 +205,7 @@ end
 function pants:send_current_session()
 	local session=self.current_session
 	session.paras=self.para.session_paras
+	session.id0 = random(1000)
 	local s=self:serialize_compress_encode(session)
 	self:send_raid_comm("pantsSCurr",s)
 end
