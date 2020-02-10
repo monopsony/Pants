@@ -3,10 +3,14 @@ local pants=PantsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
 local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
-pants.version='1.2.1'
+pants.version='1.3.0'
 
 local defaults={
 	profile={
+
+		minimap={
+			hide=false,
+		},
 
 		quick_follow=true,
 		announce_winner=true,
@@ -78,6 +82,11 @@ local defaults={
 	},-- end of profile
 }--end of defaults
 
+pants.minimap_tooltip_blueprint=([[|c%sPants|r (%s) 
+|c%sClick|r to toggle pants window
+|c%sAlt-click|r to open option window 
+]])
+
 function pants:OnInitialize()
 	self.full_name=self:unit_full_name("player")
 	local _,realm=UnitFullName("player")
@@ -89,6 +98,7 @@ function pants:OnInitialize()
 	self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
 	self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
 	
+	self.version_int=self:version_string_to_int(self.version)
 	self.para=self.db.profile
 	
 	self.interface:populate_scroll_child()
@@ -99,6 +109,30 @@ function pants:OnInitialize()
 	
 	self.interface:reset_items_status()
 	self.interface.session_scroll_panel:Hide()
+
+	local pants=self
+	self.minimap_icon_obj = LibStub("LibDataBroker-1.1"):NewDataObject("Pants", {
+		type = "data source",
+		text = "Bunnies!",
+		icon = "Interface\\AddOns\\Pants\\Media\\PANTS_ICON",
+		OnClick = function() 
+			local alt = IsAltKeyDown()
+			if alt then 
+				local AceConfigDialog=LibStub("AceConfigDialog-3.0")
+				AceConfigDialog:Open('Pants')
+			else
+				local f=PantsAddon.interface.session_scroll_panel
+				if f:IsShown() then f:Hide() else f:Show() end
+			end
+		end,
+		OnTooltipShow = function(tooltip) 
+			tooltip:SetText(('|cffa335eePants|r (%s)\n|cffffffffClick|r to open loot window\n|cffffffffAlt-click|r to open options'):format(
+				pants.version
+			))
+		end,
+	})
+	local icon = LibStub("LibDBIcon-1.0")
+	icon:Register('Pants',self.minimap_icon_obj,self.para.minimap)
 end
 
 
@@ -113,7 +147,6 @@ local chat_commands={
    
 		for i,v in ipairs(args) do
 			if self:is_itemlink(v) then 
-				
 				self:add_items_to_session(v)
 				if self.active_session then 
 					local item_info=self.current_session[#self.current_session].item_info

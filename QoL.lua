@@ -46,6 +46,12 @@ end
 ef:SetScript('OnEvent',ef.event_handler)
 ef:SetPoint('CENTER')
 
+function pants:wipe_looted_tables()
+    wipe(self.items_recently_looted)
+    wipe(self.pending_looted_items)
+    wipe(self.items_tag_pending)
+end
+
 pants.tooltip_testing_frame=CreateFrame('GameTooltip','PantsTooltipHelper',UIParent,'GameTooltipTemplate')
 local ttf=pants.tooltip_testing_frame
 ttf:SetPoint('CENTER',UIParent,'CENTER')
@@ -171,6 +177,7 @@ function pants:qol_perform_quick_action_2(frame)
         if not index then return end
 
         table.remove(pants.pending_looted_items,index)
+        pants:send_raid_comm('pantsDontTrade',{target=name,itemLink=itemLink})
         pants:qol_generate_update_table()
     end
 

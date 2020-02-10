@@ -16,8 +16,16 @@ pants.registered_comms={
 	
 	['pantsRLSend']=function(data,channel,sender)
 		local tbl=pants:decode_decompress_deserialize(data)
+		local prev_ML=pants:find_ML()
 		pants.current_rl_paras=tbl
 		pants:apply_rl_paras()
+		local new_ML=pants:find_ML()
+
+		if (prev_ML) and (new_ML) and (prev_ML~=new_ML) then
+			--upon changing ML
+			pants:wipe_looted_tables()
+			pants:qol_generate_update_table()
+		end
 	end,
 
 	["pantsActSReq"]=function(data,_,sender)
@@ -28,7 +36,10 @@ pants.registered_comms={
 		else
 			local full_name=pants:convert_to_full_name(data)
 			if full_name==pants.full_name then
-				pants:send_current_active_session()
+				if pants.throttle_timers.send_current_active_session.allowed then 
+					pants:send_current_active_session()
+					pants:throttle_action('send_current_active_session')
+				end
 			end
 		end
 	end,
@@ -44,19 +55,24 @@ pants.registered_comms={
 	["pantsActSSend"]=function(data,_,sender)
 		if UnitIsUnit("player",sender) then return end
 
-		if (not pants.active_session) then
-			pants.registered_comms["pantsSCurr"](data,_,sender)
+		if (not pants.active_session) then --toad or different session version here?
+			pants.registered_comms["pantsSCurr"](data,_,sender,true)
 		end
 	end,
 	
-	["pantsSCurr"]=function(data,_,sender)
+	["pantsSCurr"]=function(data,_,sender,refresh)
 		local tbl=pants:decode_decompress_deserialize(data)
 		pants.current_session=tbl
+
+		if refresh then 
+			pants:send_user_message('session_sync',sender)
+		else
+			pants:send_user_message('session_started',sender)
+		end
+
+		if not pants.active_session then pants.current_session_paras=tbl.paras end
+
 		pants.active_session=true
-
-		pants:send_user_message('session_started',sender)
-
-		pants.current_session_paras=tbl.paras
 		pants.interface:refresh_sort_raid_table()
 		pants.interface:update_response_dd()
 
@@ -142,13 +158,30 @@ pants.registered_comms={
 		pants:add_to_looted_items(s,sender)
 		pants:qol_generate_update_table()
 	end,	
+
+	["pantsDontTrade"]=function(data,_,sender)
+		local data=pants:decode_decompress_deserialize(data)
+		if not data.target and data.itemLink then return end
+		if not UnitIsUnit(Ambiguate(target,'none'),'player') then return end
+		pants:remove_recent_items_by_link(data.itemLink)
+		pants:qol_generate_update_table()
+	end,	
+
+	['pantsSIDCheck']=function(data,_,sender)
+		--if UnitIsUnit(sender,'player') then return end
+		if not data then return end
+		local id = pants:session_id()
+		if (not pants.active_session) or (id~=data) then
+			pants:send_session_request_name(sender)
+		end
+	end,
+
 }
 
 
 local registered_comms=pants.registered_comms
 
 function pants:send_raid_comm(prefix,data)
-
 	local channel=(IsInRaid() and "RAID") or (IsInGroup() and "PARTY") or ("WHISPER")
 	if channel=="WHISPER" then name=self.full_name end
 	self:SendCommMessage(prefix,data or '0',channel,name)
@@ -214,7 +247,12 @@ function pants:send_active_session_request()
 end
 
 function pants:send_active_session_ping()
-	self:send_raid_comm("pantsActSPing",(self.active_session and '1') or '0')
+	local bool = self.active_session 
+		and (self.current_session) 
+		and not (self.current_session.archived)
+		and pants.throttle_timers.send_active_session_ping.allowed
+	self:send_raid_comm("pantsActSPing",(bool and '1') or '0')
+	if bool then pants:throttle_action('send_active_session_ping') end
 end
 
 function pants:send_session_request_name(name)

@@ -51,7 +51,7 @@ do
     sizer:RegisterForDrag("LeftButton")
     
     --preview icon
-    frame.preview_icon=ui:Frame(frame,75,75)
+    frame.preview_icon=ui:Button(frame,75,75)
     local icon=frame.preview_icon
     icon:SetPoint("TOPLEFT",frame,"TOPLEFT",10,-10)
     
@@ -67,11 +67,36 @@ do
         local itemLink=page.item_info.itemLink    
         
         self:SetHyperlink(itemLink)
+        self:SetUpgradeItem(itemLink,itemLink)
     end
     
-    icon.tooltip=ui:Tooltip(icon,set_icon_tooltip,"PantsAddon_main_frame_icon_tooltip","TOPRIGHT",true)
+    icon:SetScript('OnEnter',function(self)
+        pants.interface.mousing_over=self
+        if (pants.interface.currently_selected_item)
+        and (pants.current_session) 
+        and (pants.current_session[pants.interface.currently_selected_item])
+        and (pants.current_session[pants.interface.currently_selected_item].item_info) 
+        then
+            pants.interface.show_tooltip(self, true, pants.current_session[pants.interface.currently_selected_item].item_info.itemLink)
+        end
+    end)
+    icon:SetScript('OnLeave',function(self)
+        pants.interface.mousing_over=nil
+        pants.interface.show_tooltip(self, false);
+    end)
+    icon:SetScript('OnClick',function(self)
+        local item_index=pants.interface.currently_selected_item
+        if IsModifiedClick()
+            and item_index
+            and pants.current_session 
+            and pants.current_session[item_index]
+            and pants.current_session[item_index].item_info
+        then 
+            HandleModifiedItemClick(pants.current_session[item_index].item_info.itemLink); 
+        end
+    end)
+    icon:RegisterForClicks("AnyUp")
 
-    
     icon.texture=ui:Texture(icon,75,75)
     local txt=icon.texture
     txt:SetAllPoints()
@@ -185,8 +210,7 @@ end
 function interface.show_tooltip(frame, show, itemLink)
 	if show then
 		GameTooltip:SetOwner(frame,"ANCHOR_RIGHT");
-		GameTooltip:SetHyperlink(itemLink)
-
+		GameTooltip:SetHyperlink(itemLink)    
 	else
 		GameTooltip:Hide();
 	end
@@ -296,7 +320,7 @@ pants.interface.table_column_settings={
 
             --response
             local s=""
-            if response.disregarded then 
+            if response.disregarded and (pants.current_session_paras.disregard) then --simple lua error fix, minor
                 s=pants.current_session_paras.disregard.text or "Disregarded"
             else
                 s=pants.current_session_paras.response_names[response.response_id or ""] or "N/A"
@@ -361,9 +385,9 @@ pants.interface.table_column_settings={
         align="CENTER",
         index=3,
         format=function(ilvl_avg,response)
-            if not pants.interface.currently_selected_item then return end
-            local ilvl,ilvln = pants.current_session[pants.interface.currently_selected_item].item_info.itemLevel,9999
-            if response.equipped then 
+            if (not pants.interface.currently_selected_item) or (not pants.current_session) then return end
+            if pants.current_session[pants.interface.currently_selected_item].item_info and response.equipped then
+                local ilvl,ilvln = pants.current_session[pants.interface.currently_selected_item].item_info.itemLevel,9999
                 for i=1,2 do 
                     local item = response.equipped[i]
                     if not item then break end
@@ -394,6 +418,7 @@ pants.interface.table_column_settings={
         format="icon",
         events={
 			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                pants.interface.mousing_over=cellFrame
 				local cellData = rowData[columnData.index];
                 local eq=rowData.equipped
                 if (not eq) or (not eq[1]) then show_tooltip(cellFrame,false); return false end
@@ -402,6 +427,7 @@ pants.interface.table_column_settings={
 				return false;
 			end,
 			OnLeave = function(rowFrame, cellFrame)
+                pants.interface.mousing_over=nil
 				show_tooltip(cellFrame, false);
 				return false;
 			end
@@ -420,6 +446,7 @@ pants.interface.table_column_settings={
         format="icon",
         events={
 			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                pants.interface.mousing_over=cellFrame
 				local cellData = rowData[columnData.index];
                 local eq=rowData.equipped
                 if (not eq) or (not eq[2]) then show_tooltip(cellFrame,false); return false end
@@ -428,6 +455,7 @@ pants.interface.table_column_settings={
 				return false;
 			end,
 			OnLeave = function(rowFrame, cellFrame)
+                pants.interface.mousing_over=nil
 				show_tooltip(cellFrame, false);
 				return false;
 			end
@@ -447,6 +475,7 @@ pants.interface.table_column_settings={
         color=yellow_color,
         events={
 			OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                pants.interface.mousing_over=cellFrame
 				local cellData = rowData[columnData.index];
                 local note=rowData.note
                 if (not note) or (note=="") then show_tooltip_string(cellFrame,false); return false end
@@ -455,6 +484,7 @@ pants.interface.table_column_settings={
 				return false;
 			end,
 			OnLeave = function(rowFrame, cellFrame)
+                pants.interface.mousing_over=nil
 				show_tooltip_string(cellFrame, false);
 				return false;
 			end,
@@ -529,6 +559,7 @@ pants.interface.table_column_settings={
             end,
 
             OnEnter = function(table, cellFrame, rowFrame, rowData, columnData, rowIndex)
+                pants.interface.mousing_over=cellFrame
                 local cellData = rowData[columnData.index];
 
                 local name,s=rowData[1],''
@@ -547,6 +578,7 @@ pants.interface.table_column_settings={
                 return false;
             end,
             OnLeave = function(rowFrame, cellFrame)
+                pants.interface.mousing_over=nil
                 show_tooltip_string(cellFrame, false);
                 return false;
             end
@@ -748,10 +780,20 @@ end
 local function scroll_child_OnClick(self)
     if not self.session_index then return end
     
-    interface.currently_selected_item=self.session_index
-    interface:apply_selected_item()
-    
-    interface:check_selected_item()
+    if IsModifiedClick()
+        and self.session_index
+        and pants.current_session 
+        and pants.current_session[self.session_index]
+        and pants.current_session[self.session_index].item_info
+    then 
+        HandleModifiedItemClick(pants.current_session[self.session_index].item_info.itemLink); 
+    else
+
+        interface.currently_selected_item=self.session_index
+        interface:apply_selected_item()
+        
+        interface:check_selected_item()
+    end
     
 end
 
@@ -880,6 +922,7 @@ function interface:populate_scroll_child()
         local btn=scrollChild.items[i]
         btn:SetSize(unpack(para.scroll_item_size))
         btn.OnClick=scroll_child_OnClick
+        btn:RegisterForClicks("AnyUp")
         if i==1 then 
             btn:SetPoint("TOP")
         else
@@ -887,14 +930,26 @@ function interface:populate_scroll_child()
         end
         btn:SetScript("OnClick",btn.OnClick)
         
-        
         if not btn.item_texture then btn.item_texture=ui:Texture(btn,50,50) end
         btn.item_texture:SetAllPoints()
         btn.item_texture:SetTexture(para.scroll_item_default_icon)
+
+        btn:SetScript('OnEnter',function(self)
+            pants.interface.mousing_over=self
+            local session_index=self.session_index
+            if session_index and pants.current_session[session_index] and pants.current_session[session_index].item_info
+            then
+                show_tooltip(self, true, pants.current_session[session_index].item_info.itemLink)
+            end
+        end)
+        btn:SetScript('OnLeave',function(self)
+            pants.interface.mousing_over=nil
+            show_tooltip(self, false);
+        end)
         
     
-        btn.tooltip=ui:Tooltip(btn,scroll_child_tooltip,"PantsAddon_scroll_frame_icon_tooltip"..tostring(i),"TOPRIGHT",true)
-        btn.tooltip.button=btn
+        -- btn.tooltip=ui:Tooltip(btn,scroll_child_tooltip,"PantsAddon_scroll_frame_icon_tooltip"..tostring(i),"TOPRIGHT",true)
+        -- btn.tooltip.button=btn
         
         --'selected' frame
         btn.check_selected=check_selected
@@ -1243,3 +1298,12 @@ function interface:reset_items_status()
     end
 end
 
+
+local modifier_frame = CreateFrame('Frame',nil,UIParent)
+modifier_frame:RegisterEvent('MODIFIER_STATE_CHANGED')
+modifier_frame:SetScript('OnEvent',function()
+    if pants.interface.mousing_over then
+        local f = pants.interface.mousing_over:GetScript('OnEnter')
+        if f then f( pants.interface.mousing_over) end
+    end
+end)

@@ -4,7 +4,7 @@ local unpack,ipairs,pairs=unpack,ipairs,pairs
 pants.current_session={}
 
 --default paras
---those will be overwritten by whoever the leader is
+--those will be overwritten by whoever started the session
 --information will be sent as session is started
 pants.current_session_paras={
     response_names={[1]="Need",[2]="Offspec",[3]="M+",[4]="Transmog",[5]="Higher ilvl for trading",[6]="Pass",[100]="Autopass"},
@@ -94,7 +94,9 @@ function pants:start_session()
         t.responses=self:generate_group_member_list(t.item_info)
     end
     pants.active_session=true
+    pants.current_session_paras=pants:table_deep_copy(pants.para.session_paras)
     pants:send_current_session()
+    pants:apply_session_on_update()
 end
 
 function pants:name_index_in_session(name,session_index)
@@ -162,6 +164,8 @@ function pants:apply_end_session()
         pants:archive_current_session() 
     end
     self.active_session=false
+    self:apply_session_on_update()
+    self:apply_session_on_update()
 
     --wipe tables
     for i,v in ipairs(wipe_keys) do
@@ -176,6 +180,7 @@ function pants:apply_end_session()
 end
 
 function pants:apply_rl_paras()
+    self:apply_session_on_update()
     local para=self.current_rl_paras
     if not para then return end 
     local in_council=false
@@ -255,3 +260,33 @@ function pants:in_council()
 end
 
 
+function pants:apply_session_on_update()
+    local bool = self:are_you_ML() and (self.active_session) and (self.current_session)
+    if bool then 
+        pants.session_on_update_frame:SetScript('OnUpdate',pants.session_on_update_frame.onUpdateFunc)
+        pants.session_on_update_frame.eT=10
+    else
+        self.session_on_update_frame:SetScript("OnUpdate",nil)
+    end
+end
+
+function pants:session_id()
+    if (not self.active_session) or (not self.current_session) then return 'None' end
+    return ('%s,%s'):format(self.current_session.id0 or 'None',#self.current_session or '0')
+end
+
+
+pants.session_on_update_frame=CreateFrame('Frame','PantsSessionOnUpdateFrame',UIParent)
+pants.session_on_update_frame.eT=0
+local throttle=15
+function pants.session_on_update_frame:onUpdateFunc(elapsed)
+    self.eT=self.eT+elapsed
+    if self.eT<throttle then return end
+    self.eT=0
+    --send session version ping if active session
+    if (pants.active_session) and (pants.current_session) and not (pants.current_session.archived) then 
+        local id = pants:session_id()
+        pants:send_raid_comm('pantsSIDCheck',id)
+    end
+
+end

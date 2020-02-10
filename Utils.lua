@@ -26,9 +26,13 @@ pants.predefined_messages={
     ['not_in_council']=function(a) return ('You need to be in the council to %s.'):format(a or 'do this') end,
     ['no_rl_paras']='Raid leader has not sent out council members.',
     ['item_not_in_bags']=function(a) return ("Tradable version of %s not found in bags"):format(a or "N/A") end,
-    ['session_closed']=function(a) return ("Active szszszszsession was ended by %s."):format(a or "N/A") end,
+    ['session_closed']=function(a) return ("Active szszzszession was ended by %s."):format(a or "N/A") end,
     ['session_active']='A session is currently active',
     ['no_simc']='You need the |cffffff00Simulationcraft|r addon for this feature',
+    ['session_sync']=function(a) 
+        local _,CLASS = UnitClass( Ambiguate(a or 'PRIEST','none') )
+        return ('Active session found and synced with |c%s%s|r'):format(pants:class_to_hex(CLASS),Ambiguate(a,'none'))
+    end,
     ['session_started']=function(a) 
         local _,CLASS = UnitClass( Ambiguate(a or 'PRIEST','none') )
         return ('Session started by |c%s%s|r'):format(pants:class_to_hex(CLASS),Ambiguate(a,'none'))
@@ -627,6 +631,21 @@ pants.throttle_timers={
         expire=function() PantsAddon.throttle_timers.simc_ask.allowed=true end,
         start=function() PantsAddon.throttle_timers.simc_ask.allowed=false end,
     },
+
+    send_active_session_ping={
+        time=2,
+        allowed=true,
+        expire=function() PantsAddon.throttle_timers.send_active_session_ping.allowed=true end,
+        start=function() PantsAddon.throttle_timers.send_active_session_ping.allowed=false end,
+    },
+
+    send_current_active_session={
+        time=2,
+        allowed=true,
+        expire=function() PantsAddon.throttle_timers.send_current_active_session.allowed=true end,
+        start=function() PantsAddon.throttle_timers.send_current_active_session.allowed=false end,
+    },
+   
 }
 
 function pants:throttle_action(s)
@@ -638,4 +657,26 @@ function pants:throttle_action(s)
         tbl.expire()
     end)
     tbl.start()
+end
+
+local function string_split(inputstr, sep)
+        if sep == nil then
+                sep = "%s"
+        end
+        local t={}
+        for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+                table.insert(t, str)
+        end
+        return t
+end
+
+function pants:version_string_to_int(s)
+    local spl = string_split(s,'.')
+    local int=''
+    for i,v in ipairs(spl) do 
+        if #v<2 then v='0'..v end
+        int=int..v
+    end
+    if #spl<3 then int=int..'00' end
+    return tonumber(int)
 end

@@ -136,3 +136,18 @@ args["ilvl_difference_prot"]={
             return pants.para.ilvl_difference
         end,
 }  
+
+
+args["minimap_icon_prot"]={
+    type="toggle",
+    order=17,
+    name="Minimap icon",
+    desc='Toggle the minimap icon |cffccff00(requires reload)|r',
+    set=function(self,value)
+            pants.para.minimap.hide=not value
+
+        end,
+    get=function(self) 
+            return not pants.para.minimap.hide
+        end,
+}  
