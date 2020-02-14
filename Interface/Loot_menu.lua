@@ -320,7 +320,7 @@ pants.interface.table_column_settings={
 
             --response
             local s=""
-            if response.disregarded and (pants.current_session_paras.disregard) then --simple lua error fix, minor
+            if response.disregarded and (pants.current_session_paras) and (pants.current_session_paras.disregard) then --simple lua error fix, minor
                 s=pants.current_session_paras.disregard.text or "Disregarded"
             else
                 s=pants.current_session_paras.response_names[response.response_id or ""] or "N/A"
@@ -366,11 +366,13 @@ pants.interface.table_column_settings={
         format="text",
         color=function(_,_,tbl)
             local r,g,b,a=1,1,1,1
-            if tbl.disregarded then 
-                r,g,b,a=unpack(pants.current_session_paras.disregard.color)
-            else
-                local response_id=tbl.response_id
-                r,g,b,a=unpack(pants.current_session_paras.response_colours[response_id] or {1,1,1,1})
+            if pants.current_session_paras then
+                if tbl.disregarded then 
+                    r,g,b,a=unpack(pants.current_session_paras.disregard.color)
+                else
+                    local response_id=tbl.response_id
+                    r,g,b,a=unpack(pants.current_session_paras.response_colours[response_id] or {1,1,1,1})
+                end
             end
             return {r=r,g=g,b=b,a=a or 1}
         end,
@@ -385,8 +387,11 @@ pants.interface.table_column_settings={
         align="CENTER",
         index=3,
         format=function(ilvl_avg,response)
-            if (not pants.interface.currently_selected_item) or (not pants.current_session) then return end
-            if pants.current_session[pants.interface.currently_selected_item].item_info and response.equipped then
+            if (not pants.interface.currently_selected_item) or (not pants.current_session) or (not response) then return end
+            if pants.current_session[pants.interface.currently_selected_item] 
+            and pants.current_session[pants.interface.currently_selected_item].item_info 
+            and response.equipped then
+
                 local ilvl,ilvln = pants.current_session[pants.interface.currently_selected_item].item_info.itemLevel,9999
                 for i=1,2 do 
                     local item = response.equipped[i]
@@ -402,7 +407,7 @@ pants.interface.table_column_settings={
                     return ("%.0f(%s%s)"):format(ilvl_avg,c,abs(diff))
                 end
             end
-            return ("%.0f"):format(ilvl_avg)
+            return ("%.0f"):format(ilvl_avg or 'N/A')
         end,
         compareSort=compare_sort_function,
 
@@ -737,7 +742,7 @@ function interface:refill_vote_frame()
     
     local index=pants:name_index_in_session(pants.full_name,item_index)
     
-    if pants.current_session and pants.current_session[item_index] then
+    if pants.current_session and pants.current_session[item_index] and pants.current_session_paras then
         if not pants.current_session[item_index].responses then return end
         local response=pants.current_session[item_index].responses[index]
         if not response then
@@ -762,6 +767,7 @@ end
 
 local help_table,wipe,pairs={},table.wipe,pairs
 function interface:update_response_dd()
+    if not pants.current_session_paras then return end
     local para=pants.current_session_paras.response_names
     if not para then return end
 

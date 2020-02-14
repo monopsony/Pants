@@ -165,7 +165,6 @@ function pants:apply_end_session()
     end
     self.active_session=false
     self:apply_session_on_update()
-    self:apply_session_on_update()
 
     --wipe tables
     for i,v in ipairs(wipe_keys) do
@@ -206,11 +205,11 @@ function pants:apply_item_assignment(data)
     end
 
     for k,v in pairs(self.current_session[item_index].responses) do 
-        --makes sure that you dont get prompted to trade items that you looted then got assigned
-        pants:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) 
-
         if k==index then v.win=true else v.win=false end
     end
+
+    --makes sure that you dont get prompted to trade items that you looted then got assigned
+    self:remove_recent_items_by_link(self.current_session[item_index].item_info.itemLink) 
 
     --update interface if item is selected
     if self.interface.currently_selected_item==item_index then
@@ -259,7 +258,6 @@ function pants:in_council()
     if IsInRaid() then return self.currently_in_council else return true end
 end
 
-
 function pants:apply_session_on_update()
     local bool = self:are_you_ML() and (self.active_session) and (self.current_session)
     if bool then 
@@ -274,7 +272,6 @@ function pants:session_id()
     if (not self.active_session) or (not self.current_session) then return 'None' end
     return ('%s,%s'):format(self.current_session.id0 or 'None',#self.current_session or '0')
 end
-
 
 pants.session_on_update_frame=CreateFrame('Frame','PantsSessionOnUpdateFrame',UIParent)
 pants.session_on_update_frame.eT=0

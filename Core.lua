@@ -282,7 +282,9 @@ end
 local no_response, diff_version = {}, {}
 function pants:end_raid_ping()
 	pants.initiated_ping=false
-
+	wipe(no_response)
+	wipe(diff_version)
+	
 	for k,v in pairs(self.ping_responses) do 
 		if not v then 
 			table.insert(no_response,k)

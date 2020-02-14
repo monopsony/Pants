@@ -4,7 +4,7 @@ local afterDo,waiting_time=C_Timer.After,1
 pants.registered_comms={
 
 	["pantsPing"]=function(data,channel,sender)
-		if (data~='init') and pants.initiated_ping then 
+		if pants.initiated_ping and (data~='init') then 
 			pants.ping_responses[pants:unit_full_name(sender)]=data
 			return 
 		end
@@ -16,12 +16,12 @@ pants.registered_comms={
 	
 	['pantsRLSend']=function(data,channel,sender)
 		local tbl=pants:decode_decompress_deserialize(data)
-		local prev_ML=pants:find_ML()
+		local prev_ML=pants:find_ML() or ''
 		pants.current_rl_paras=tbl
 		pants:apply_rl_paras()
-		local new_ML=pants:find_ML()
+		local new_ML=pants:find_ML() or ''
 
-		if (prev_ML) and (new_ML) and (prev_ML~=new_ML) then
+		if (prev_ML~=new_ML) then
 			--upon changing ML
 			pants:wipe_looted_tables()
 			pants:qol_generate_update_table()
@@ -70,7 +70,7 @@ pants.registered_comms={
 			pants:send_user_message('session_started',sender)
 		end
 
-		if not pants.active_session then pants.current_session_paras=tbl.paras end
+		pants.current_session_paras=tbl.paras
 
 		pants.active_session=true
 		pants.interface:refresh_sort_raid_table()
@@ -175,7 +175,6 @@ pants.registered_comms={
 			pants:send_session_request_name(sender)
 		end
 	end,
-
 }
 
 
@@ -183,8 +182,11 @@ local registered_comms=pants.registered_comms
 
 function pants:send_raid_comm(prefix,data)
 	local channel=(IsInRaid() and "RAID") or (IsInGroup() and "PARTY") or ("WHISPER")
-	if channel=="WHISPER" then name=self.full_name end
-	self:SendCommMessage(prefix,data or '0',channel,name)
+	if channel=="WHISPER" then 
+		self:SendCommMessage(prefix,data or '0',channel,self.full_name)
+	else
+		self:SendCommMessage(prefix,data or '0',channel)
+	end
 end
 
 function pants:OnCommReceived(prefix,data,channel,sender)
@@ -272,7 +274,6 @@ function pants:send_rl_paras()
 	if not UnitIsGroupLeader('player') then return end
 	self:send_raid_comm("pantsRLSend",s)
 end
-
 
 function pants:send_item_assignment(item_index,name)
     if (not item_index) or (not name) or (not self.current_session[item_index]) then return end
