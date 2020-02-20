@@ -670,6 +670,15 @@ local function string_split(inputstr, sep)
         return t
 end
 
+function pants:array_has_value(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
 function pants:version_string_to_int(s)
     local spl = string_split(s,'.')
     local int=''
