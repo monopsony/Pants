@@ -259,7 +259,7 @@ function pants:in_council()
 end
 
 function pants:apply_session_on_update()
-    local bool = self:are_you_ML() and (self.active_session) and (self.current_session)
+    local bool = self:are_you_ML() and (self.active_session) and (self.current_session) and (not self.current_session.archived)
     if bool then 
         pants.session_on_update_frame:SetScript('OnUpdate',pants.session_on_update_frame.onUpdateFunc)
         pants.session_on_update_frame.eT=10

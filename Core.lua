@@ -88,6 +88,7 @@ pants.minimap_tooltip_blueprint=([[|c%sPants|r (%s)
 ]])
 
 function pants:OnInitialize()
+
 	self.full_name=self:unit_full_name("player")
 	local _,realm=UnitFullName("player")
 	self.realm_name=realm
@@ -322,9 +323,8 @@ local event_frame=CreateFrame('Frame','PantsGlobalEventFrame',UIParent)
 registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}
 pants.active_session_found_requested=false
 for k,v in pairs(registered_events) do event_frame:RegisterEvent(v) end
-function event_frame:handle_event(event)
+function event_frame:handle_event(event,...)
 	if (event=='PLAYER_ENTERING_WORLD') or (event=='GROUP_JOINED') then 
-
 		pants.full_name=pants:unit_full_name("player")
 		local _,realm=UnitFullName("player")
 		pants.realm_name=realm
@@ -332,8 +332,11 @@ function event_frame:handle_event(event)
 		--gotta throttle it by 1 frame when logging in
 		--I assume for people to load your name (nil otherwise)
 		local pants=pants
-		C_Timer.After(0,function() pants:send_active_session_request() end)
-	
+		local isInitialLogin,isReload=...
+		if event=='GROUP_JOINED' or (event=='PLAYER_ENTERING_WORLD' and (isInitialLogin or isReload)) then
+			C_Timer.After(0,function() pants:send_active_session_request() end)
+			self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+		end
 	elseif event=='PARTY_LEADER_CHANGED' then
 		pants:send_rl_paras()
 	end
