@@ -101,7 +101,32 @@ do
     local txt=icon.texture
     txt:SetAllPoints()
     
-    
+    --duplicate buttons
+    local function duplicate_button_OnClick(self)
+        -- TOAD HERE
+    end
+
+
+    frame.duplicate_buttons = {}
+    local dp = frame.duplicate_buttons
+    for i = 1, 20 do 
+
+        if not dp[i] then 
+            dp[i] = ui:HighlightButton(frame,25,25,tostring(i)) 
+        end
+        local btn = dp[i]
+
+        if i==1 then
+            btn:SetPoint('TOPLEFT',icon,'BOTTOMLEFT',0,-10)
+        else
+            btn:SetPoint('LEFT',dp[i-1],'RIGHT',5,0)
+        end
+        btn.duplicate_index = i-1
+        btn:SetScript('OnClick',duplicate_button_OnClick)
+
+    end    
+
+
     --info texts
     frame.text_item_name=ui:FontString(frame,"")
     frame.text_item_name:SetPoint("TOPLEFT",icon,"TOPRIGHT",10,0)
@@ -118,6 +143,8 @@ do
 
     frame.text_assigned=ui:FontString(frame,"")
     frame.text_assigned:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-85,-10)
+
+
 
 end
 
@@ -794,10 +821,27 @@ local function scroll_child_OnClick(self)
     then 
         HandleModifiedItemClick(pants.current_session[self.session_index].item_info.itemLink); 
     else
+        local session = pants.current_session[self.session_index]
+        if pants.para.stack_duplicates 
+            and session.duplicates
+            and #session.duplicates>0
+        then
+            if not session.currently_clicked_duplicate then
+                session.currently_clicked_duplicate = 0 -- 0 means original
+            end
+            local ccd = session.currently_clicked_duplicate
 
-        interface.currently_selected_item=self.session_index
+            if ccd == 0 then 
+                interface.currently_selected_item = self.session_index
+            else
+                local index = session.duplicates[ccd].item_index
+                interface.currently_selected_item = index
+            end
+        else
+            interface.currently_selected_item = self.session_index
+        end
+
         interface:apply_selected_item()
-        
         interface:check_selected_item()
     end
     
@@ -822,8 +866,15 @@ end
 local function check_selected(self)
     local bool=false
     local ind1,ind2=self.session_index or nil,pants.interface.currently_selected_item or nil
-    
-    if (ind1) and (ind2) and (ind1==ind2) then bool=true end
+    local session = pants.current_session 
+
+    if (not ind1) or (not ind2) or (not session) then return end
+    if not session[ind2] then return end
+
+    if pants.para.stack_duplicates and session[ind2].ori then 
+        ind2 = session[ind2].ori.item_index
+    end
+    bool = (ind1==ind2) 
     
     if bool and not self.is_selected then 
         self.selected_frame:Show()
@@ -893,15 +944,13 @@ local set_status={
 
     ["metatable"]={__index=function(table,key) return table["none"] end}
 }   
-setmetatable(set_status,set_status.metatable)
 
-local function check_status(self)
-    local index=self.session_index
-    if not index then return 'none' end
-    local session,status,player_index=pants.current_session[index],"none",pants:name_index_in_session(pants.full_name,index)
+local function session_player_status(session,player_index)
+    if (not session) or (not session.responses) or not player_index then 
+        return 'none'
+    end
+    status = 'none'
 
-    if (not session) or (not session.responses) then set_status['none'](self); return end
-        
     if (not player_index) or (not session.responses[player_index]) then
         status="not_in_list"
     elseif session.responses[player_index].win then
@@ -913,8 +962,84 @@ local function check_status(self)
     else
         status='pending'
     end
+    return status
+end
 
-    if status~=self.status then set_status[status](self) end
+local duplicate_status_prio_list={
+    'not_in_list',
+    'won',
+    'pending',
+    'vote_pending',
+    'lost',
+}
+local function duplicate_status(tbl)
+    local status='none'
+    if not tbl then return end
+
+    local is_in = pants.array_has_value
+
+    for i,v in ipairs(duplicate_status_prio_list) do 
+        if is_in(tbl,v) then
+            status = v
+            break
+        end
+    end
+    return status
+end
+
+local function btn_apply_duplicate_text(btn)
+    if not btn then return end
+    local index = btn.self.session_index
+    local session = pants.current_session[index]
+    if not session then return end 
+
+    if pants.para.stack_duplicates 
+        and session.duplicates 
+        and (#session.duplicates>0) 
+    then 
+        local n = #session.duplicates
+        btn.duplicate_text:SetText(tostring(n))
+        btn.duplicate_text:Show()
+    else
+        btn.duplicate_text:Hide()
+    end
+end
+
+setmetatable(set_status,set_status.metatable)
+local status_help_table = {} --helps with saving intermediate duplicate states
+local function check_status(self,is_session_item)
+    if not is_session_item then 
+        local index=self.session_index
+        if not index then return 'none' end
+
+        local session,status,player_index=pants.current_session[index],"none",pants:name_index_in_session(pants.full_name,index)
+
+        if (not session) or (not session.responses) then set_status['none'](self); return end
+            
+        if pants.para.stack_duplicates and #session.duplicates>0 then
+            local tbl = status_help_table
+            wipe(tbl)
+            tbl[0] = check_status(session,true)
+            for i,v in ipairs(session.duplicates) do 
+                tbl[#tbl+1] = check_status(v,true)
+            end
+            status = duplicate_status(tbl)
+
+        else -- if not duplicate stuff
+            status = session_player_status(session, player_index)
+        end
+
+        if status~=self.status then set_status[status](self) end
+
+    else --if it's a session item (i.e. not the actual button)
+         --this is mostly called for the duplicate thing above 
+         
+        local session, player_index = self, pants:name_index_in_session(pants.full_name,index)
+        return session_player_status(session, player_index)
+
+    end
+
+
 end
 
 function interface:populate_scroll_child()
@@ -976,12 +1101,21 @@ function interface:populate_scroll_child()
         sel.texture=sel:CreateTexture(nil,"OVERLAY")
         sel.texture:SetAllPoints()
         --sel.texture:SetTexture("Interface\\Buttons\\UI-Quickslot-Depress.PNG")
-        
+
+        --duplicate number
+        if not btn.duplicate_text then 
+            btn.duplicate_text = ui:FontString(btn,'')
+        end
+        btn.duplicate_text:SetPoint('CENTER')
+        btn.duplicate_text:SetJustifyH('CENTER')
+        btn.duplicate_text:SetJustifyV('CENTER') 
+
     end
 end
 
 function interface:apply_session_to_scroll()
     local items=pants.current_session
+    if (not items) or (#items==0) then return end
     local scroll_items=interface.session_scroll_panel.scrollChild.items
     local order=pants:get_session_order()
     
@@ -1277,6 +1411,7 @@ function interface:check_items_status()
     if not items then return end
     for i=1,#items do 
         scroll_items[i]:check_status()
+        scroll_items[i]:btn_apply_duplicate_text()
     end
 end
 
@@ -1313,3 +1448,4 @@ modifier_frame:SetScript('OnEvent',function()
         if f then f( pants.interface.mousing_over) end
     end
 end)
+

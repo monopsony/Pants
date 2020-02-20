@@ -15,7 +15,7 @@ pants.current_session_paras={
 function pants:add_items_to_session(msg)
     local session=pants.current_session
     local n=#session+1
-    session[n]={}
+    session[n]={item_index=n}
     local page=session[n]    
     page.item_info=self:itemlink_info(msg)
     
@@ -28,15 +28,39 @@ function pants:add_items_to_session(msg)
 end
 
 local session_order,wipe={},table.wipe
+local session_help_table = {} -- used when stack_duplicates is true, saves 
+                              -- which itemlinks were already seen
+
 function pants:get_session_order()
     local session=self.current_session
     if not session then return {} end
     
     wipe(session_order)
     --TBA PROPER ORDER BASED ON PARAS
-    for i=1,#session do
-        session_order[i]=i
-    end
+    if self.para.stack_duplicates then
+        wipe(session_help_table)
+
+        for i,v in ipairs(session) do
+            local link = v.item_info.itemLink 
+            if session_help_table[link] then
+                v.is_duplicate = true
+                local ori=session_help_table[link]
+                ori.duplicates[#ori.duplicates+1] = v
+                v.ori = ori
+            else 
+                v.is_duplicate = false
+                ori.duplicates={}
+                session_help_table[link] = v 
+                session_order[#session_order+1] = i
+                v.duplicates = {}
+            end
+        end
+
+    else --else of if stack_duplicates
+        for i=1,#session do
+            session_order[i]=i
+        end
+    end --end of if stack_duplicates
    
     return session_order
 end
