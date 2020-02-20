@@ -103,23 +103,31 @@ do
     
     --duplicate buttons
     local function duplicate_button_OnClick(self)
-        -- TOAD HERE
+        local session = pants.current_session
+        -- currently_clicked_duplicate
+        if not session then return end
+        local index = pants.interface.currently_selected_item
+        local page = session[index]
+        if not page then return end
+
+        if page.ori then page = page.ori end
+        
+        
     end
 
 
     frame.duplicate_buttons = {}
     local dp = frame.duplicate_buttons
     for i = 1, 20 do 
-
         if not dp[i] then 
-            dp[i] = ui:HighlightButton(frame,25,25,tostring(i)) 
+            dp[i] = ui:HighlightButton(frame,20,20,tostring(i)) 
         end
         local btn = dp[i]
 
         if i==1 then
             btn:SetPoint('TOPLEFT',icon,'BOTTOMLEFT',0,-10)
         else
-            btn:SetPoint('LEFT',dp[i-1],'RIGHT',5,0)
+            btn:SetPoint('LEFT',dp[i-1],'RIGHT',0,0)
         end
         btn.duplicate_index = i-1
         btn:SetScript('OnClick',duplicate_button_OnClick)
@@ -525,8 +533,8 @@ pants.interface.table_column_settings={
                 local note = rowData.note
                 if not note then return end
                 note = note..' ' --easier than adding a third match for "if there's only a link"
-                local a = note:match('www.*\n')
-                if not a then a = note:match('www.* ') end
+                local a = note:match('(www.-) ')
+                if not a then a = note:match('(www.-)\n') end
                 if a then pants.interface:open_link_cp_frame(a) end
             end,  
             },      
@@ -815,7 +823,7 @@ local function scroll_child_OnClick(self)
     
     if IsModifiedClick()
         and self.session_index
-        and pants.current_session 
+        and pants.current_session
         and pants.current_session[self.session_index]
         and pants.current_session[self.session_index].item_info
     then 
@@ -979,7 +987,7 @@ local function duplicate_status(tbl)
     local is_in = pants.array_has_value
 
     for i,v in ipairs(duplicate_status_prio_list) do 
-        if is_in(tbl,v) then
+        if is_in(nil,tbl,v) then
             status = v
             break
         end
@@ -989,7 +997,7 @@ end
 
 local function btn_apply_duplicate_text(btn)
     if not btn then return end
-    local index = btn.self.session_index
+    local index = btn.session_index
     local session = pants.current_session[index]
     if not session then return end 
 
@@ -998,7 +1006,7 @@ local function btn_apply_duplicate_text(btn)
         and (#session.duplicates>0) 
     then 
         local n = #session.duplicates
-        btn.duplicate_text:SetText(tostring(n))
+        btn.duplicate_text:SetText(tostring(n+1))
         btn.duplicate_text:Show()
     else
         btn.duplicate_text:Hide()
@@ -1019,7 +1027,7 @@ local function check_status(self,is_session_item)
         if pants.para.stack_duplicates and #session.duplicates>0 then
             local tbl = status_help_table
             wipe(tbl)
-            tbl[0] = check_status(session,true)
+            tbl[1] = check_status(session,true)
             for i,v in ipairs(session.duplicates) do 
                 tbl[#tbl+1] = check_status(v,true)
             end
@@ -1109,7 +1117,7 @@ function interface:populate_scroll_child()
         btn.duplicate_text:SetPoint('CENTER')
         btn.duplicate_text:SetJustifyH('CENTER')
         btn.duplicate_text:SetJustifyV('CENTER') 
-
+        btn.duplicate_text:SetFont( "Fonts\\FRIZQT__.TTF",30)
     end
 end
 
@@ -1201,6 +1209,20 @@ function interface:apply_selected_item()
         frame.text_item_extra:SetText(  ("|cff00ff00%s|r"):format(item.itemTertiary or "") )
         self:update_assigned_text()
         
+        n = 0
+        --apply duplicate things
+        if para.stack_duplicates 
+            and page.duplicates 
+            and #page.duplicates>0 
+        then
+            n = #page.duplicates + 1 -- +1 cause original is included
+        end
+        for i = 1, n do 
+            frame.duplicate_buttons[i]:Show()
+        end
+        for i = n+1, 20 do 
+            frame.duplicate_buttons[i]:Hide()
+        end
     else
     
         local para=pants.para
@@ -1411,7 +1433,7 @@ function interface:check_items_status()
     if not items then return end
     for i=1,#items do 
         scroll_items[i]:check_status()
-        scroll_items[i]:btn_apply_duplicate_text()
+        btn_apply_duplicate_text(scroll_items[i])
     end
 end
 

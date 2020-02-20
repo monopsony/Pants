@@ -49,7 +49,6 @@ function pants:get_session_order()
                 v.ori = ori
             else 
                 v.is_duplicate = false
-                ori.duplicates={}
                 session_help_table[link] = v 
                 session_order[#session_order+1] = i
                 v.duplicates = {}

@@ -496,9 +496,15 @@ local LibD=LibStub:GetLibrary("LibDeflate")
 
 function pants:serialize_compress_encode(tbl)
     if (not tbl) or (not type(tbl)=="table") then return nil end
+    -- this is kind of dirty but yeah: 
+    -- this table was essentially the source of an infinitely nested loop
+    -- which is not really something you want to serialize
+    local save_duplicates = tbl.duplicates or nil
+    if save_duplicates then tbl.duplicates = nil end
     local s1=LibS:Serialize(tbl)
     local s2=LibD:CompressDeflate(s1)
     local s3=LibD:EncodeForWoWAddonChannel(s2)
+    if save_duplicates then tbl.duplicates = save_duplicates end
     return s3
 end
 

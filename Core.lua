@@ -3,7 +3,7 @@ local pants=PantsAddon
 local LSM=LibStub:GetLibrary("LibSharedMedia-3.0")
 local unpack,ipairs,pairs,wipe=unpack,ipairs,pairs,table.wipe
 
-pants.version='1.3.0'
+pants.version='1.4.0'
 
 local defaults={
 	profile={
@@ -12,6 +12,7 @@ local defaults={
 			hide=false,
 		},
 
+		stack_duplicates=true,
 		quick_follow=true,
 		announce_winner=true,
 		session_archive=true,
