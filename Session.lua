@@ -18,13 +18,12 @@ function pants:add_items_to_session(msg)
     session[n]={item_index=n}
     local page=session[n]    
     page.item_info=self:itemlink_info(msg)
-    
+
     if self.active_session then 
 
     end
-
     self.interface:apply_session_to_scroll()
-    
+
 end
 
 local session_order,wipe={},table.wipe
@@ -36,10 +35,12 @@ function pants:get_session_order()
     if not session then return {} end
     
     wipe(session_order)
-    --TBA PROPER ORDER BASED ON PARAS
-    if self.para.stack_duplicates then
-        wipe(session_help_table)
 
+    --TBA PROPER ORDER BASED ON PARAS
+    if self.para.stack_duplicates 
+        and session[1] and session[1].item_info
+    then
+        wipe(session_help_table)
         for i,v in ipairs(session) do
             local link = v.item_info.itemLink 
             if session_help_table[link] then
@@ -141,7 +142,6 @@ function pants:apply_response_update(sender,response)
     --         for k,v in pairs(response.responses) do self:apply_response_update(k,v) end
     --     else return end
     -- end
-
     local item_index=response.item_index 
     if (not item_index) or (not self.current_session) or (not self.current_session[item_index]) then return end 
     
@@ -151,12 +151,32 @@ function pants:apply_response_update(sender,response)
     
     response.item_index=nil
     response.row_index=nil
-    local current_response=self.current_session[item_index].responses[sender_id]
+    local session = self.current_session 
+    local page = session[item_index]
+    local current_response=page.responses[sender_id]
         
     for k,v in pairs(response) do 
         current_response[k]=v
     end
     
+    -- apply the response to all other duplicates
+    -- note: not using .duplicates as this is needed
+    -- even if the interface is inactive
+    -- response.
+    local itemLink = ''
+    if page and page.item_info and page.item_info.itemLink then
+        itemLink = page.item_info.itemLink 
+    end
+    for i,v in ipairs(session) do
+        local link = v.item_info.itemLink
+        if link == itemLink then 
+            local current_response = v.responses[sender_id]
+            for k,v in pairs(response) do 
+                current_response[k]=v
+            end
+        end
+    end
+
     --update interface if item is selected
     if self.interface.currently_selected_item==item_index then
         self.interface:refresh_sort_raid_table()

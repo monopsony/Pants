@@ -4,6 +4,7 @@ local interface=pants.interface
 local ui=LibStub('StdUi')
 local media="Interface\\AddOns\\Pants\\Media\\"
 
+
 local function update_scroll_XY_paras()
     local panel=pants.interface.session_scroll_panel
     local x,y=panel:GetLeft(),panel:GetTop()
@@ -108,14 +109,16 @@ do
         if not session then return end
         local index = pants.interface.currently_selected_item
         local page = session[index]
+
         if not page then return end
 
         if page.ori then page = page.ori end
-        
-        
+        self.session_index = page.item_index
+        page.currently_clicked_duplicate = self.duplicate_index
+        pants.interface.scroll_child_OnClick(self)
     end
 
-
+    local target_dup_btn_text = "Interface\\Buttons\\CheckButtonHilight-Blue"
     frame.duplicate_buttons = {}
     local dp = frame.duplicate_buttons
     for i = 1, 20 do 
@@ -132,6 +135,13 @@ do
         btn.duplicate_index = i-1
         btn:SetScript('OnClick',duplicate_button_OnClick)
 
+        btn.targetted_texture = btn:CreateTexture(nil,'OVERLAY')
+        btn.targetted_texture:SetAllPoints()
+        btn.targetted_texture:SetTexture(target_dup_btn_text)
+        btn.targetted_texture:SetTexCoord(.2,.8,.2,.8)
+        btn.targetted_texture:SetAlpha(.7)
+
+        btn:Hide()
     end    
 
 
@@ -742,8 +752,8 @@ function interface:udpate_raid_table_parameters(initialize)
     local frame=interface.session_main_frame
     local tbl=frame.raid_table
     local para=pants.para
-    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",para.raid_table_x_inset,-para.raid_table_y_inset)
-    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-para.raid_table_x_inset,-para.raid_table_y_inset)
+    tbl:SetPoint("TOPLEFT",frame,"TOPLEFT",para.raid_table_x_inset,-para.raid_table_y_inset-15)
+    tbl:SetPoint("TOPRIGHT",frame,"TOPRIGHT",-para.raid_table_x_inset,-para.raid_table_y_inset-15)
     tbl:SetPoint("BOTTOM",frame,"BOTTOM",0,para.raid_table_bottom_inset)
     
     --tbl:SetDisplayRows(0,para.raid_table_row_height)
@@ -819,6 +829,7 @@ function interface:update_response_dd()
 end
 
 local function scroll_child_OnClick(self)
+
     if not self.session_index then return end
     
     if IsModifiedClick()
@@ -829,6 +840,7 @@ local function scroll_child_OnClick(self)
     then 
         HandleModifiedItemClick(pants.current_session[self.session_index].item_info.itemLink); 
     else
+
         local session = pants.current_session[self.session_index]
         if pants.para.stack_duplicates 
             and session.duplicates
@@ -854,6 +866,7 @@ local function scroll_child_OnClick(self)
     end
     
 end
+pants.interface.scroll_child_OnClick = scroll_child_OnClick
 
 local function scroll_child_tooltip(self)
 
@@ -875,7 +888,6 @@ local function check_selected(self)
     local bool=false
     local ind1,ind2=self.session_index or nil,pants.interface.currently_selected_item or nil
     local session = pants.current_session 
-
     if (not ind1) or (not ind2) or (not session) then return end
     if not session[ind2] then return end
 
@@ -954,11 +966,10 @@ local set_status={
 }   
 
 local function session_player_status(session,player_index)
-    if (not session) or (not session.responses) or not player_index then 
+    if (not session) or (not session.responses) or (not player_index) then 
         return 'none'
     end
     status = 'none'
-
     if (not player_index) or (not session.responses[player_index]) then
         status="not_in_list"
     elseif session.responses[player_index].win then
@@ -1024,7 +1035,10 @@ local function check_status(self,is_session_item)
 
         if (not session) or (not session.responses) then set_status['none'](self); return end
             
-        if pants.para.stack_duplicates and #session.duplicates>0 then
+        if pants.para.stack_duplicates 
+            and session.duplicates 
+            and #session.duplicates>0 
+        then
             local tbl = status_help_table
             wipe(tbl)
             tbl[1] = check_status(session,true)
@@ -1040,15 +1054,18 @@ local function check_status(self,is_session_item)
         if status~=self.status then set_status[status](self) end
 
     else --if it's a session item (i.e. not the actual button)
-         --this is mostly called for the duplicate thing above 
-         
-        local session, player_index = self, pants:name_index_in_session(pants.full_name,index)
-        return session_player_status(session, player_index)
-
+         --this is (only) called for the duplicate thing above
+        local index = self.item_index 
+        local player_index = pants:name_index_in_session(pants.full_name,index)
+        if not pants.current_session 
+            or not pants.current_session[index] 
+        then return 'none' end
+        return session_player_status(self, player_index)
     end
 
 
 end
+
 
 function interface:populate_scroll_child()
 
@@ -1114,10 +1131,12 @@ function interface:populate_scroll_child()
         if not btn.duplicate_text then 
             btn.duplicate_text = ui:FontString(btn,'')
         end
-        btn.duplicate_text:SetPoint('CENTER')
+        btn.duplicate_text:SetPoint('TOPRIGHT')
         btn.duplicate_text:SetJustifyH('CENTER')
         btn.duplicate_text:SetJustifyV('CENTER') 
-        btn.duplicate_text:SetFont( "Fonts\\FRIZQT__.TTF",30)
+        btn.duplicate_text:SetFont( "Fonts\\FRIZQT__.TTF",15)
+        btn.duplicate_text:SetTextColor(1,1,1)
+
     end
 end
 
@@ -1126,7 +1145,7 @@ function interface:apply_session_to_scroll()
     if (not items) or (#items==0) then return end
     local scroll_items=interface.session_scroll_panel.scrollChild.items
     local order=pants:get_session_order()
-    
+
     for i=1,#order do
         scroll_items[i]:Show()
         local j=order[i]
@@ -1140,6 +1159,8 @@ function interface:apply_session_to_scroll()
     
     self:check_selected_item()
     self:check_items_status()
+
+
 end
 
 local empty_table={}
@@ -1211,6 +1232,8 @@ function interface:apply_selected_item()
         
         n = 0
         --apply duplicate things
+        local page = page.ori or page
+        local sel = page.currently_clicked_duplicate or 21
         if para.stack_duplicates 
             and page.duplicates 
             and #page.duplicates>0 
@@ -1223,6 +1246,22 @@ function interface:apply_selected_item()
         for i = n+1, 20 do 
             frame.duplicate_buttons[i]:Hide()
         end
+        -- currently_clicked_duplicate
+
+        for i= 1, 20 do 
+            local b = frame.duplicate_buttons[i]
+
+            -- Hide/show not needed/needed buttons
+            if i<=n then b:Show() else b:Hide() end
+
+            -- Apply selected texutre
+            if b.duplicate_index == sel then  
+                b.targetted_texture:Show() 
+            else 
+                b.targetted_texture:Hide() 
+            end
+        end
+
     else
     
         local para=pants.para
@@ -1422,7 +1461,9 @@ function interface:check_selected_item()
     if not items then interface.currently_selected_item=nil; return end
     
     for i=1,#items do 
-        scroll_items[i]:check_selected()
+        if scroll_items[i]:IsShown() then
+            scroll_items[i]:check_selected()
+        end
     end
 end
 

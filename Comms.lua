@@ -105,6 +105,7 @@ pants.registered_comms={
 		--	end
 		--end
 		--
+		
 		local pants=pants
 		for i=1,#pants.current_session do
 			if (not pants.equipped_item_index_sent[i]) then

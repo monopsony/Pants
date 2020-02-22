@@ -152,14 +152,14 @@ args["minimap_icon_prot"]={
         end,
 }  
 
-args["collapse_duplicates_prot"]={
+args["stack_duplicates_prot"]={
     type="toggle",
     order=18,
-    name="Collapse duplicates",
+    name="Stack duplicates",
     desc='When active, shows duplicate items as a stack rather than individually',
     set=function(self,value)
-            pants.interface:apply_session_to_scroll() 
             pants.para.stack_duplicates = value
+            pants.interface:apply_session_to_scroll() 
         end,
     get=function(self) 
             return pants.para.stack_duplicates

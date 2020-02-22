@@ -147,17 +147,18 @@ local chat_commands={
 		local msg=pants:separate_itemlinks(msg)
 		local args={self:GetArgs(msg,10,1)}
    
+
 		for i,v in ipairs(args) do
 			if self:is_itemlink(v) then 
 				self:add_items_to_session(v)
 				if self.active_session then 
-					local item_info=self.current_session[#self.current_session].item_info
+		    		local item_info=self.current_session[#self.current_session].item_info
 					self.current_session[#self.current_session].responses=self:generate_group_member_list(item_info)
 					self:send_new_session_item(#self.current_session)
 				end
 			end
 		end
-		
+
 		self.interface.session_scroll_panel:Show()
 		self.interface:check_items_status()
 	end,

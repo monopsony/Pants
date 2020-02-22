@@ -494,19 +494,63 @@ end
 local LibS =LibStub:GetLibrary("AceSerializer-3.0")
 local LibD=LibStub:GetLibrary("LibDeflate")
 
+local save_ori, save_duplicates = {}, {}
 function pants:serialize_compress_encode(tbl)
     if (not tbl) or (not type(tbl)=="table") then return nil end
-    -- this is kind of dirty but yeah: 
-    -- this table was essentially the source of an infinitely nested loop
-    -- which is not really something you want to serialize
-    local save_duplicates = tbl.duplicates or nil
-    if save_duplicates then tbl.duplicates = nil end
+
+    wipe(save_ori)
+    wipe(save_duplicates)
+
+    -- dont judge me
+    -- didnt want to create a whole deepcopy and then delete looped elements
+    -- because thats just a lot of wasted throwaway tables
+    if tbl[1] and tbl[1].responses then --if it's a session table
+        for i, v in ipairs(tbl) do 
+            if tbl[i].duplicates then
+                save_duplicates = tbl[i].duplicates
+                tbl[i].duplicates = nil
+            end
+            if tbl[i].ori then
+                save_ori = tbl[i].ori
+                tbl[i].ori = nil
+            end
+        end
+    end
+
+    if tbl.duplicates then
+        save_duplicates = tbl.duplicates
+        tbl.duplicates = nil
+    end
+    if tbl.ori then
+        save_ori = tbl.ori
+        tbl.ori = nil
+    end
+
     local s1=LibS:Serialize(tbl)
     local s2=LibD:CompressDeflate(s1)
     local s3=LibD:EncodeForWoWAddonChannel(s2)
-    if save_duplicates then tbl.duplicates = save_duplicates end
+
+    if tbl[1] and tbl[1].responses then --if it's a session table
+        for i, v in ipairs(tbl) do 
+            if save_ori[i] then
+                tbl[i].ori = save_ori[i]
+            end
+            if save_duplicates[i] then
+                tbl[i].duplicates = save_duplicates[i]
+            end
+        end
+    else
+        if next(save_ori) then
+            tbl.ori = save_ori 
+        end
+        if next(save_duplicates) then
+            tbl.duplicates = save_duplicates 
+        end
+    end
+
     return s3
 end
+
 
 function pants:compress_encode(s)
     if (not s) or (not type(s)=="string") then return nil end
@@ -550,7 +594,9 @@ function pants:table_deep_copy(orig)
     if orig_type == 'table' then
         copy = {}
         for orig_key, orig_value in next, orig, nil do
-            copy[self:table_deep_copy(orig_key)] = self:table_deep_copy(orig_value)
+            if (orig_key~='duplicates') and (orig_key~='ori') then
+                copy[self:table_deep_copy(orig_key)] = self:table_deep_copy(orig_value)
+            end
         end
         setmetatable(copy, self:table_deep_copy(getmetatable(orig)))
     else -- number, string, boolean, etc
@@ -558,6 +604,7 @@ function pants:table_deep_copy(orig)
     end
     return copy
 end
+
 
 local raid_units={}
 for i=1,40 do raid_units[i]="raid"..tostring(i) end
