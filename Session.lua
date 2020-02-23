@@ -42,7 +42,8 @@ function pants:get_session_order()
     then
         wipe(session_help_table)
         for i,v in ipairs(session) do
-            local link = v.item_info.itemLink 
+            local link = ''
+            if v.item_info then link = v.item_info.itemLink end
             if session_help_table[link] then
                 v.is_duplicate = true
                 local ori=session_help_table[link]

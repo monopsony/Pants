@@ -842,6 +842,7 @@ local function scroll_child_OnClick(self)
     else
 
         local session = pants.current_session[self.session_index]
+        if not session then return end
         if pants.para.stack_duplicates 
             and session.duplicates
             and #session.duplicates>0
@@ -1131,10 +1132,10 @@ function interface:populate_scroll_child()
         if not btn.duplicate_text then 
             btn.duplicate_text = ui:FontString(btn,'')
         end
-        btn.duplicate_text:SetPoint('TOPRIGHT')
-        btn.duplicate_text:SetJustifyH('CENTER')
-        btn.duplicate_text:SetJustifyV('CENTER') 
-        btn.duplicate_text:SetFont( "Fonts\\FRIZQT__.TTF",15)
+        btn.duplicate_text:SetPoint('BOTTOMRIGHT',btn,'BOTTOMRIGHT',-4,2)
+        btn.duplicate_text:SetJustifyH('RIGHT')
+        btn.duplicate_text:SetJustifyV('BOTTOM') 
+        btn.duplicate_text:SetFont( "Fonts\\ARIALN.TTF",14, "OUTLINE")
         btn.duplicate_text:SetTextColor(1,1,1)
 
     end
@@ -1159,8 +1160,6 @@ function interface:apply_session_to_scroll()
     
     self:check_selected_item()
     self:check_items_status()
-
-
 end
 
 local empty_table={}
@@ -1481,13 +1480,17 @@ end
 function interface:item_go_next()
     local items=pants.current_session
     local scroll_items=interface.session_scroll_panel.scrollChild.items
-
-    local i0 = self.currently_selected_item
-    if (not i0) then return end
-
     if not items then return end
+
+    i0=1
+    for i=1,#items do 
+        if scroll_items[i]:IsShown() and scroll_items[i].is_selected then
+            i0=i
+        end
+    end
+    print('SELECTED IS ',i0)
     for i=i0+1,#items do 
-        if scroll_items[i].status == 'vote_pending' then scroll_items[i]:Click(); return true end
+        if scroll_items[i].status == 'vote_pending' then scroll_items[i]:Click(); print('clicking'); return true end
     end
     return false
 end

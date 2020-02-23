@@ -161,6 +161,7 @@ local chat_commands={
 
 		self.interface.session_scroll_panel:Show()
 		self.interface:check_items_status()
+
 	end,
 
 	["help"]=function(...)

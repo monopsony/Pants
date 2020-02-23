@@ -82,6 +82,7 @@ pants.registered_comms={
 
 		for i=1,#pants.current_session do
 			local pants=pants
+			pants.equipped_item_index_sent[i] = true 
 			afterDo(waiting_time,function() pants:send_equipped_items(i) end)
 		end
 		pants.interface.session_scroll_panel:Show()
@@ -94,8 +95,11 @@ pants.registered_comms={
 			local itemLink = tbl.item_info.itemLink
 			if pants.active_session and pants.para.announce_on_add then pants:send_user_message('item_added',itemLink,sender) end
 		end
+
+
 		pants.interface:apply_session_to_scroll()
 		if pants.active_session and pants.para.reopen_on_add then pants.interface.session_scroll_panel:Show() end
+
 
 		--check which items are missing, send 
 		--for i=1,#pants.current_session do
@@ -106,6 +110,7 @@ pants.registered_comms={
 		--end
 		--
 		
+
 		local pants=pants
 		for i=1,#pants.current_session do
 			if (not pants.equipped_item_index_sent[i]) then
@@ -113,6 +118,7 @@ pants.registered_comms={
 				afterDo(waiting_time,function() pants:send_equipped_items(i) end)
 			end
 		end
+
 
 	end,
 
@@ -235,7 +241,6 @@ function pants:send_equipped_items(session_index)
 	local items=self:get_equipped_items(session_index)
 	local _,ilvl=GetAverageItemLevel()
 	local response={[3]=ilvl,item_index=session_index}
-
 	if not items then return self:send_response_update(response) end
 	response.equipped=items
 	self:send_response_update(response)

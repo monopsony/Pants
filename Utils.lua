@@ -498,8 +498,7 @@ local save_ori, save_duplicates = {}, {}
 function pants:serialize_compress_encode(tbl)
     if (not tbl) or (not type(tbl)=="table") then return nil end
 
-    wipe(save_ori)
-    wipe(save_duplicates)
+    save_ori, save_duplicates = {}, {}
 
     -- dont judge me
     -- didnt want to create a whole deepcopy and then delete looped elements
