@@ -11,10 +11,9 @@ args["announce_winner_prot"]={
     desc='When active, automatically announces winners (if you are the ML)',
     set=function(self,value)
         pants.para.announce_winner=value
-
     end,
-
+    
     get=function(self) 
         return pants.para.announce_winner
     end,
-}  
+}

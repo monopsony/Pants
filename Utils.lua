@@ -741,3 +741,12 @@ function pants:version_string_to_int(s)
     if #spl<3 then int=int..'00' end
     return tonumber(int)
 end
+
+function pants:print_itemlink(itemLink,readable)
+    if (not type(itemLink)=='string') then return end
+    if readable then 
+        DEFAULT_CHAT_FRAME:AddMessage(string.gsub(itemLink,'|','l'))
+    else 
+        DEFAULT_CHAT_FRAME:AddMessage(itemLink)
+    end
+end

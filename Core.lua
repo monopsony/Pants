@@ -12,7 +12,7 @@ local defaults={
 			hide=false,
 		},
 
-		stack_duplicates=true,
+		stack_duplicates=false,
 		quick_follow=true,
 		announce_winner=true,
 		session_archive=true,
@@ -20,6 +20,7 @@ local defaults={
 		reopen_on_add=true,
 		announce_on_add=true,
 		ilvl_difference=true,
+		council_show_assigned_tag=true,
 
 		scroll_item_size={40,40},
 		scroll_item_default_icon=136207,
@@ -111,7 +112,7 @@ function pants:OnInitialize()
 	
 	self.interface:reset_items_status()
 	self.interface.session_scroll_panel:Hide()
-
+	
 	local pants=self
 	self.minimap_icon_obj = LibStub("LibDataBroker-1.1"):NewDataObject("Pants", {
 		type = "data source",
@@ -317,13 +318,11 @@ function pants:end_raid_ping()
 		s2=('%s|c%s%s|r (%s), '):format(s2,h,k,v)
 	end
 	pants:send_user_message('ping_result')
-	print(s1)
-	print(s2)
 
 end
 
 local event_frame=CreateFrame('Frame','PantsGlobalEventFrame',UIParent)
-registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}
+local registered_events={'PLAYER_ENTERING_WORLD','PARTY_LEADER_CHANGED','GROUP_JOINED'}
 pants.active_session_found_requested=false
 for k,v in pairs(registered_events) do event_frame:RegisterEvent(v) end
 function event_frame:handle_event(event,...)

@@ -93,7 +93,6 @@ args["copy_note_link_prot"]={
         end,
 }  
 
-
 args["reopen_on_add_prot"]={
     type="toggle",
     order=16,
@@ -107,7 +106,6 @@ args["reopen_on_add_prot"]={
             return pants.para.reopen_on_add
         end,
 }  
-
 
 args["announce_on_add_prot"]={
     type="toggle",
@@ -137,7 +135,6 @@ args["ilvl_difference_prot"]={
         end,
 }  
 
-
 args["minimap_icon_prot"]={
     type="toggle",
     order=17,
@@ -156,7 +153,9 @@ args["stack_duplicates_prot"]={
     type="toggle",
     order=18,
     name="Stack duplicates",
-    desc='When active, shows duplicate items as a stack rather than individually',
+    desc='When active, shows duplicate items as a stack rather than '
+        ..'individually.\n|cffff0000Still experimental. Turn on at your own'
+        ..' peril|r',
     set=function(self,value)
             pants.para.stack_duplicates = value
             pants.interface:apply_session_to_scroll() 
@@ -165,3 +164,18 @@ args["stack_duplicates_prot"]={
             return pants.para.stack_duplicates
         end,
 }  
+
+args["council_show_assigned_tag_prot"]={
+    type="toggle",
+    order=19,
+    name="Assigned tag",
+    desc='When active and in council,'
+        ..' shows assigned items in the scroll list',
+    set=function(self,value)
+            pants.para.council_show_assigned_tag = value
+            pants.interface:check_items_status()
+        end,
+    get=function(self) 
+            return pants.para.council_show_assigned_tag
+        end,
+}

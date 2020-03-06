@@ -967,7 +967,7 @@ local set_status={
 }   
 
 local function session_player_status(session,player_index)
-    if (not session) or (not session.responses) or (not player_index) then 
+    if (not session) or (not session.responses) then 
         return 'none'
     end
     status = 'none'
@@ -1024,6 +1024,24 @@ local function btn_apply_duplicate_text(btn)
         btn.duplicate_text:Hide()
     end
 end
+
+local function btn_apply_assigned_tag(btn)
+    if not btn then return end
+    local index = btn.session_index
+    local session = pants.current_session[index]
+    if not session then return end 
+
+    if pants.para.council_show_assigned_tag 
+        and pants:in_council()
+        and pants:item_assigned_player(index)
+    then 
+        btn.assigned_tag:Show()
+    else
+        btn.assigned_tag:Hide()
+    end
+
+end
+
 
 setmetatable(set_status,set_status.metatable)
 local status_help_table = {} --helps with saving intermediate duplicate states
@@ -1138,6 +1156,15 @@ function interface:populate_scroll_child()
         btn.duplicate_text:SetFont( "Fonts\\ARIALN.TTF",14, "OUTLINE")
         btn.duplicate_text:SetTextColor(1,1,1)
 
+        --duplicate number
+        if not btn.assigned_tag then 
+            btn.assigned_tag = btn:CreateTexture(nil,"OVERLAY")
+        end
+        btn.assigned_tag:SetPoint('TOPRIGHT',btn,'TOPRIGHT',0,0)
+        btn.assigned_tag:SetTexture(assign_icon)
+        btn.assigned_tag:SetSize(17,17)
+        r,g,b = yellow_color.r, yellow_color.g, yellow_color.b
+        btn.assigned_tag:SetVertexColor(r, g, b)
     end
 end
 
@@ -1474,6 +1501,7 @@ function interface:check_items_status()
     for i=1,#items do 
         scroll_items[i]:check_status()
         btn_apply_duplicate_text(scroll_items[i])
+        btn_apply_assigned_tag(scroll_items[i])
     end
 end
 
@@ -1488,9 +1516,9 @@ function interface:item_go_next()
             i0=i
         end
     end
-    print('SELECTED IS ',i0)
+
     for i=i0+1,#items do 
-        if scroll_items[i].status == 'vote_pending' then scroll_items[i]:Click(); print('clicking'); return true end
+        if scroll_items[i].status == 'vote_pending' then scroll_items[i]:Click(); return true end
     end
     return false
 end
